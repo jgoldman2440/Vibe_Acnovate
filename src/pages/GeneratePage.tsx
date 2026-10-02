@@ -3,6 +3,7 @@ import ChartDataEditor from "../components/ChartDataEditor";
 import ChartPreview from "../components/ChartPreview";
 import type {
   AxisColors,
+  AxisLabelFontSizes,
   AxisLabels,
   ChartType,
   ChartVariants,
@@ -13,6 +14,7 @@ import type {
 import {
   chartConfigs,
   defaultAxisColors,
+  defaultAxisLabelFontSizes,
   defaultAxisLabels,
   defaultVariants,
   variantOptions,
@@ -57,6 +59,11 @@ export default function GeneratePage() {
       ? { ...defaultAxisLabels, ...existingChartConfig.axisLabels }
       : defaultAxisLabels,
   );
+  const [axisLabelFontSizes, setAxisLabelFontSizes] = useState<AxisLabelFontSizes>(
+    existingChartConfig
+      ? { ...defaultAxisLabelFontSizes, ...existingChartConfig.axisLabelFontSizes }
+      : defaultAxisLabelFontSizes,
+  );
   const [isExporting, setIsExporting] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +86,7 @@ export default function GeneratePage() {
           elementId: existingChartConfig?.elementId,
           axisColors,
           axisLabels,
+          axisLabelFontSizes,
         },
       });
     } finally {
@@ -94,6 +102,7 @@ export default function GeneratePage() {
     setVariants(defaultVariants);
     setAxisColors(defaultAxisColors);
     setAxisLabels(defaultAxisLabels);
+    setAxisLabelFontSizes(defaultAxisLabelFontSizes);
     setStep("edit");
   };
 
@@ -216,6 +225,8 @@ export default function GeneratePage() {
                 onAxisColorsChange={setAxisColors}
                 axisLabels={axisLabels}
                 onAxisLabelsChange={setAxisLabels}
+                axisLabelFontSizes={axisLabelFontSizes}
+                onAxisLabelFontSizesChange={setAxisLabelFontSizes}
               />
             </div>
 
@@ -227,6 +238,7 @@ export default function GeneratePage() {
                 variants={variants}
                 axisColors={axisColors}
                 axisLabels={axisLabels}
+                axisLabelFontSizes={axisLabelFontSizes}
                 containerRef={chartContainerRef}
               />
             </div>

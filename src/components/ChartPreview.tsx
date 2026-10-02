@@ -23,8 +23,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import type { AxisColors, AxisLabels, ChartType, ChartVariants, ColumnDef, DataRow } from '../types/chart';
-import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabels } from '../data/chartConfigs';
+import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartType, ChartVariants, ColumnDef, DataRow } from '../types/chart';
+import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelFontSizes, defaultAxisLabels } from '../data/chartConfigs';
+
+const LEGEND_WRAPPER_STYLE: React.CSSProperties = { paddingTop: '25px' };
 
 interface Props {
   chartType: ChartType;
@@ -33,6 +35,7 @@ interface Props {
   variants: ChartVariants;
   axisColors?: AxisColors;
   axisLabels?: AxisLabels;
+  axisLabelFontSizes?: AxisLabelFontSizes;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -43,6 +46,7 @@ export default function ChartPreview({
   variants,
   axisColors = defaultAxisColors,
   axisLabels = defaultAxisLabels,
+  axisLabelFontSizes = defaultAxisLabelFontSizes,
   containerRef,
 }: Props) {
   return (
@@ -57,7 +61,7 @@ export default function ChartPreview({
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            {renderChart(chartType, data, columns, variants, axisColors, axisLabels)}
+            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes)}
           </ResponsiveContainer>
         )}
       </div>
@@ -83,20 +87,24 @@ function renderChart(
   variants: ChartVariants,
   axisColors: AxisColors,
   axisLabels: AxisLabels,
+  axisLabelFontSizes: AxisLabelFontSizes,
 ) {
   const seriesCols   = columns.filter((c) => c.isSeries);
   const categoryKey  = columns.find((c) => c.type === 'text')?.key ?? chartConfigs[chartType].categoryKey;
+  const xFontSize    = axisLabelFontSizes.xAxis;
+  const yFontSize    = axisLabelFontSizes.yAxis;
+  // margins/offsets scale with label font size so larger labels don't clip or overlap tick text
   const margin       = {
     top: 10,
     right: 24,
-    left: axisLabels.yAxis ? 20 : 0,
-    bottom: axisLabels.xAxis ? 20 : 5,
+    left: axisLabels.yAxis ? yFontSize + 8 : 0,
+    bottom: axisLabels.xAxis ? xFontSize + 8 : 5,
   };
   const xAxisLabel = axisLabels.xAxis
-    ? { value: axisLabels.xAxis, position: 'insideBottom' as const, offset: -10, style: { fill: axisColors.xAxis, fontSize: 12 } }
+    ? { value: axisLabels.xAxis, position: 'insideBottom' as const, offset: -(xFontSize - 2), style: { fill: axisColors.xAxis, fontSize: xFontSize } }
     : undefined;
   const yAxisLabel = axisLabels.yAxis
-    ? { value: axisLabels.yAxis, angle: -90, position: 'insideLeft' as const, style: { fill: axisColors.yAxis, fontSize: 12 }, offset: 10 }
+    ? { value: axisLabels.yAxis, angle: -90, position: 'insideLeft' as const, style: { fill: axisColors.yAxis, fontSize: yFontSize }, offset: 16 - yFontSize / 2 }
     : undefined;
 
   switch (chartType) {
@@ -109,7 +117,7 @@ function renderChart(
 
       if (isHorizontal) {
         return (
-          <BarChart layout="vertical" data={chartData} margin={{ ...margin, left: axisLabels.yAxis ? 36 : 16 }}>
+          <BarChart layout="vertical" data={chartData} margin={{ ...margin, left: axisLabels.yAxis ? yFontSize + 24 : 16 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
             <XAxis type="number" tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
             <YAxis
@@ -121,7 +129,7 @@ function renderChart(
               label={yAxisLabel}
             />
             <Tooltip />
-            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+            <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
             {seriesCols.map((col, i) => (
               <Bar key={col.key} dataKey={col.key} name={col.label} fill={col.color ?? COLORS[i % COLORS.length]} />
             ))}
@@ -140,7 +148,7 @@ function renderChart(
             label={yAxisLabel}
           />
           <Tooltip />
-          <Legend wrapperStyle={{ paddingTop: '10px' }} />
+          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
           {seriesCols.map((col, i) => (
             <Bar
               key={col.key}
@@ -166,7 +174,7 @@ function renderChart(
           <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
           <YAxis tick={{ fontSize: 11, fill: axisColors.yAxis }} stroke={axisColors.yAxis} label={yAxisLabel} />
           <Tooltip />
-          <Legend wrapperStyle={{ paddingTop: '10px' }} />
+          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
           {seriesCols.map((col, i) => (
             <Line
               key={col.key}
@@ -201,7 +209,7 @@ function renderChart(
             label={yAxisLabel}
           />
           <Tooltip />
-          <Legend wrapperStyle={{ paddingTop: '10px' }} />
+          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
           {seriesCols.map((col, i) => (
             <Area
               key={col.key}
@@ -251,7 +259,7 @@ function renderChart(
             labelLine
           />
           <Tooltip />
-          <Legend wrapperStyle={{ paddingTop: '10px' }} />
+          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
         </PieChart>
       );
     }
@@ -298,7 +306,7 @@ function renderChart(
             );
           })}
           <Tooltip />
-          <Legend wrapperStyle={{ paddingTop: '10px' }} />
+          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
         </RadarChart>
       );
     }

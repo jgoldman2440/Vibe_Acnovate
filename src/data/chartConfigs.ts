@@ -1,4 +1,4 @@
-import type { AxisColors, AxisLabels, ChartConfig, ChartType, ChartVariants } from '../types/chart';
+import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartConfig, ChartType, ChartVariants } from '../types/chart';
 
 export const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899'];
 
@@ -12,6 +12,13 @@ export const defaultAxisLabels: AxisLabels = {
   xAxis: '',
   yAxis: '',
 };
+
+export const defaultAxisLabelFontSizes: AxisLabelFontSizes = {
+  xAxis: 12,
+  yAxis: 12,
+};
+
+export const AXIS_LABEL_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24];
 
 export const chartConfigs: Record<ChartType, ChartConfig> = {
   bar: {
