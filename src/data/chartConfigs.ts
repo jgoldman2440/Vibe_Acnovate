@@ -14,11 +14,11 @@ export const defaultAxisLabels: AxisLabels = {
 };
 
 export const defaultAxisLabelFontSizes: AxisLabelFontSizes = {
-  xAxis: 12,
-  yAxis: 12,
+  xAxis: 18,
+  yAxis: 18,
 };
 
-export const AXIS_LABEL_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24];
+export const AXIS_LABEL_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 26, 28, 30];
 
 export const chartConfigs: Record<ChartType, ChartConfig> = {
   bar: {
