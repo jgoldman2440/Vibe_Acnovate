@@ -27,6 +27,12 @@ export interface AxisLabels {
   yAxis: string;
 }
 
+// font size (px) of the axis title labels
+export interface AxisLabelFontSizes {
+  xAxis: number;
+  yAxis: number;
+}
+
 export interface DataRow {
   [key: string]: string | number;
 }
@@ -57,4 +63,5 @@ export interface SavedChartConfig {
   elementId?: string;
   axisColors?: AxisColors;
   axisLabels?: AxisLabels;
+  axisLabelFontSizes?: AxisLabelFontSizes;
 }

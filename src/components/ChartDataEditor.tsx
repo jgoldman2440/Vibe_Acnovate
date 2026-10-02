@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { AxisColors, AxisLabels, ChartType, ColumnDef, DataRow } from '../types/chart';
-import { COLORS } from '../data/chartConfigs';
+import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartType, ColumnDef, DataRow } from '../types/chart';
+import { AXIS_LABEL_FONT_SIZES, COLORS } from '../data/chartConfigs';
 import { parseAccountingNumber } from '../utils/numberParsing';
 import ColorPicker from './ColorPicker';
 
@@ -14,13 +14,15 @@ interface Props {
   onAxisColorsChange: (colors: AxisColors) => void;
   axisLabels: AxisLabels;
   onAxisLabelsChange: (labels: AxisLabels) => void;
+  axisLabelFontSizes: AxisLabelFontSizes;
+  onAxisLabelFontSizesChange: (sizes: AxisLabelFontSizes) => void;
 }
 
 const SERIES_ADDABLE: ChartType[] = ['bar', 'line', 'area', 'radar'];
 const SERIES_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 // chart types that render an XAxis / YAxis / CartesianGrid in the preview
 const AXIS_STYLABLE: ChartType[] = ['bar', 'line', 'area', 'scatter'];
-// axis fields shown in the Axes toolbar — xAxis/yAxis are renamable, grid is color-only
+// axis fields shown in the Axes toolbar — xAxis/yAxis are renamable and resizable, grid is color-only
 const AXIS_FIELDS: Array<{ key: keyof AxisColors; defaultLabel: string; renamable: boolean }> = [
   { key: 'xAxis', defaultLabel: 'X-Axis', renamable: true },
   { key: 'yAxis', defaultLabel: 'Y-Axis', renamable: true },
@@ -37,6 +39,8 @@ export default function ChartDataEditor({
   onAxisColorsChange,
   axisLabels,
   onAxisLabelsChange,
+  axisLabelFontSizes,
+  onAxisLabelFontSizesChange,
 }: Props) {
   const [editingColKey, setEditingColKey] = useState<string | null>(null);
   // header-level series color picker
@@ -401,7 +405,7 @@ export default function ChartDataEditor({
       </div>
 
       {AXIS_STYLABLE.includes(chartType) && (
-        <div className="px-4 py-3 border-t border-gray-200 shrink-0 flex items-center gap-4">
+        <div className="px-4 py-3 border-t border-gray-200 shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Axes
           </span>
@@ -469,6 +473,26 @@ export default function ChartDataEditor({
                 )
               ) : (
                 <span className="text-xs text-gray-500">{field.defaultLabel}</span>
+              )}
+
+              {field.renamable && (
+                <select
+                  value={axisLabelFontSizes[field.key as keyof AxisLabelFontSizes]}
+                  onChange={(e) =>
+                    onAxisLabelFontSizesChange({
+                      ...axisLabelFontSizes,
+                      [field.key]: Number(e.target.value),
+                    })
+                  }
+                  title={`${field.defaultLabel} label font size`}
+                  className="shrink-0 px-1 py-0.5 text-xs text-gray-500 bg-transparent border border-gray-200 rounded hover:border-gray-300 focus:border-indigo-500 focus:outline-none cursor-pointer"
+                >
+                  {AXIS_LABEL_FONT_SIZES.map((size) => (
+                    <option key={size} value={size}>
+                      {size}px
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
           ))}
