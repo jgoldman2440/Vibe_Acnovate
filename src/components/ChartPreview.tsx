@@ -24,7 +24,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { AxisColors, AxisLabelColors, AxisLabelFontSizes, AxisLabels, AxisTickColors, AxisTickFontSizes, ChartType, ChartVariants, ColumnDef, DataRow } from '../types/chart';
-import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelColors, defaultAxisLabelFontSizes, defaultAxisLabels, defaultAxisTickColors, defaultAxisTickFontSizes } from '../data/chartConfigs';
+import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelColors, defaultAxisLabelFontSizes, defaultAxisLabels, defaultAxisTickColors, defaultAxisTickFontSizes, DEFAULT_LEGEND_FONT_SIZE } from '../data/chartConfigs';
 
 const LEGEND_WRAPPER_STYLE: React.CSSProperties = { paddingTop: '25px' };
 
@@ -39,6 +39,7 @@ interface Props {
   axisLabelColors?: AxisLabelColors;
   axisTickFontSizes?: AxisTickFontSizes;
   axisTickColors?: AxisTickColors;
+  legendFontSize?: number;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -53,6 +54,7 @@ export default function ChartPreview({
   axisLabelColors = defaultAxisLabelColors,
   axisTickFontSizes = defaultAxisTickFontSizes,
   axisTickColors = defaultAxisTickColors,
+  legendFontSize = DEFAULT_LEGEND_FONT_SIZE,
   containerRef,
 }: Props) {
   return (
@@ -67,7 +69,7 @@ export default function ChartPreview({
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes, axisLabelColors, axisTickFontSizes, axisTickColors)}
+            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes, axisLabelColors, axisTickFontSizes, axisTickColors, legendFontSize)}
           </ResponsiveContainer>
         )}
       </div>
@@ -97,7 +99,13 @@ function renderChart(
   axisLabelColors: AxisLabelColors,
   axisTickFontSizes: AxisTickFontSizes,
   axisTickColors: AxisTickColors,
+  legendFontSize: number,
 ) {
+  // legend icons scale with the text (recharts default: 14px icon next to ~16px text)
+  const legendProps = {
+    wrapperStyle: { ...LEGEND_WRAPPER_STYLE, fontSize: legendFontSize },
+    iconSize: Math.round((legendFontSize * 14) / 16),
+  };
   const seriesCols   = columns.filter((c) => c.isSeries);
   const categoryKey  = columns.find((c) => c.type === 'text')?.key ?? chartConfigs[chartType].categoryKey;
   const xFontSize    = axisLabelFontSizes.xAxis;
@@ -146,7 +154,7 @@ function renderChart(
               label={yAxisLabel}
             />
             <Tooltip />
-            <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+            <Legend {...legendProps} />
             {seriesCols.map((col, i) => (
               <Bar key={col.key} dataKey={col.key} name={col.label} fill={col.color ?? COLORS[i % COLORS.length]} />
             ))}
@@ -166,7 +174,7 @@ function renderChart(
             label={yAxisLabel}
           />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
           {seriesCols.map((col, i) => (
             <Bar
               key={col.key}
@@ -192,7 +200,7 @@ function renderChart(
           <XAxis dataKey={categoryKey} tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
           <YAxis tick={yTick} width={yAxisWidth} stroke={axisColors.yAxis} label={yAxisLabel} />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
           {seriesCols.map((col, i) => (
             <Line
               key={col.key}
@@ -228,7 +236,7 @@ function renderChart(
             label={yAxisLabel}
           />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
           {seriesCols.map((col, i) => (
             <Area
               key={col.key}
@@ -278,7 +286,7 @@ function renderChart(
             labelLine
           />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
         </PieChart>
       );
     }
@@ -325,7 +333,7 @@ function renderChart(
             );
           })}
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
         </RadarChart>
       );
     }

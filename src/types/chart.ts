@@ -85,4 +85,5 @@ export interface SavedChartConfig {
   axisLabelColors?: AxisLabelColors;
   axisTickFontSizes?: AxisTickFontSizes;
   axisTickColors?: AxisTickColors;
+  legendFontSize?: number;
 }

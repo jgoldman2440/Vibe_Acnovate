@@ -37,6 +37,11 @@ export const defaultAxisTickColors: AxisTickColors = {
 
 export const AXIS_TICK_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24];
 
+// legend text size (px); 16 matches the inherited browser default the legend used before it was configurable
+export const DEFAULT_LEGEND_FONT_SIZE = 16;
+
+export const LEGEND_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32];
+
 export const chartConfigs: Record<ChartType, ChartConfig> = {
   bar: {
     type: 'bar',

@@ -23,6 +23,7 @@ import {
   defaultAxisTickColors,
   defaultAxisTickFontSizes,
   defaultVariants,
+  DEFAULT_LEGEND_FONT_SIZE,
   variantOptions,
 } from "../data/chartConfigs";
 import { useRef, useState } from "react";
@@ -95,6 +96,9 @@ export default function GeneratePage() {
         }
       : defaultAxisTickColors,
   );
+  const [legendFontSize, setLegendFontSize] = useState<number>(
+    existingChartConfig?.legendFontSize ?? DEFAULT_LEGEND_FONT_SIZE,
+  );
   const [isExporting, setIsExporting] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -121,6 +125,7 @@ export default function GeneratePage() {
           axisLabelColors,
           axisTickFontSizes,
           axisTickColors,
+          legendFontSize,
         },
       });
     } finally {
@@ -140,6 +145,7 @@ export default function GeneratePage() {
     setAxisLabelColors(defaultAxisLabelColors);
     setAxisTickFontSizes(defaultAxisTickFontSizes);
     setAxisTickColors(defaultAxisTickColors);
+    setLegendFontSize(DEFAULT_LEGEND_FONT_SIZE);
     setStep("edit");
   };
 
@@ -270,6 +276,8 @@ export default function GeneratePage() {
                 onAxisTickFontSizesChange={setAxisTickFontSizes}
                 axisTickColors={axisTickColors}
                 onAxisTickColorsChange={setAxisTickColors}
+                legendFontSize={legendFontSize}
+                onLegendFontSizeChange={setLegendFontSize}
               />
             </div>
 
@@ -285,6 +293,7 @@ export default function GeneratePage() {
                 axisLabelColors={axisLabelColors}
                 axisTickFontSizes={axisTickFontSizes}
                 axisTickColors={axisTickColors}
+                legendFontSize={legendFontSize}
                 containerRef={chartContainerRef}
               />
             </div>

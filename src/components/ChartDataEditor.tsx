@@ -10,7 +10,7 @@ import type {
   ColumnDef,
   DataRow,
 } from '../types/chart';
-import { AXIS_LABEL_FONT_SIZES, AXIS_TICK_FONT_SIZES, COLORS } from '../data/chartConfigs';
+import { AXIS_LABEL_FONT_SIZES, AXIS_TICK_FONT_SIZES, COLORS, LEGEND_FONT_SIZES } from '../data/chartConfigs';
 import { parseAccountingNumber } from '../utils/numberParsing';
 import ColorPicker from './ColorPicker';
 import Popover from './Popover';
@@ -33,6 +33,8 @@ interface Props {
   onAxisTickFontSizesChange: (sizes: AxisTickFontSizes) => void;
   axisTickColors: AxisTickColors;
   onAxisTickColorsChange: (colors: AxisTickColors) => void;
+  legendFontSize: number;
+  onLegendFontSizeChange: (size: number) => void;
 }
 
 const SERIES_ADDABLE: ChartType[] = ['bar', 'line', 'area', 'radar'];
@@ -64,6 +66,8 @@ export default function ChartDataEditor({
   onAxisTickFontSizesChange,
   axisTickColors,
   onAxisTickColorsChange,
+  legendFontSize,
+  onLegendFontSizeChange,
 }: Props) {
   const [editingColKey, setEditingColKey] = useState<string | null>(null);
   // header-level series color picker
@@ -306,7 +310,25 @@ export default function ChartDataEditor({
                                   color={dotColor}
                                   onChange={(hex) => handleSeriesColorChange(col.key, hex)}
                                   onClose={() => setColorPickerKey(null)}
-                                />
+                                >
+                                  <div>
+                                    <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                      Legend font size
+                                    </label>
+                                    <select
+                                      value={legendFontSize}
+                                      onChange={(e) => onLegendFontSizeChange(Number(e.target.value))}
+                                      className="block w-full px-1 py-1 text-xs bg-white border border-gray-200 rounded focus:outline-none focus:border-indigo-400 cursor-pointer"
+                                    >
+                                      {LEGEND_FONT_SIZES.map((size) => (
+                                        <option key={size} value={size}>
+                                          {size}px
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <p className="mt-0.5 text-[10px] text-gray-400">Applies to all series</p>
+                                  </div>
+                                </ColorPicker>
                               </Popover>
                             )}
                           </div>
