@@ -1,4 +1,4 @@
-import type { AxisColors, AxisLabelColors, AxisLabelFontSizes, AxisLabels, AxisTickColors, AxisTickFontSizes, ChartConfig, ChartType, ChartVariants } from '../types/chart';
+import type { AxisColors, AxisLabelColors, AxisLabelFontSizes, AxisLabels, AxisTickColors, AxisTickFontSizes, ChartConfig, ChartType, ChartVariants, PolarAxisColors, PolarAxisFontSizes } from '../types/chart';
 
 export const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899'];
 
@@ -46,6 +46,18 @@ export const LEGEND_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40
 export const DEFAULT_PIE_LABEL_FONT_SIZE = 16;
 
 export const PIE_LABEL_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48];
+
+// radar axis text; sizes match the values the preview hardcoded before they were configurable.
+// Font size options reuse AXIS_TICK_FONT_SIZES since both are axis tick text.
+export const defaultPolarAxisFontSizes: PolarAxisFontSizes = {
+  angleAxis: 11,
+  radiusAxis: 10,
+};
+
+export const defaultPolarAxisColors: PolarAxisColors = {
+  angleAxis: '#666666',
+  radiusAxis: '#666666',
+};
 
 export const chartConfigs: Record<ChartType, ChartConfig> = {
   bar: {

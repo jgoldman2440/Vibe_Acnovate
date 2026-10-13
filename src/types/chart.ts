@@ -51,6 +51,17 @@ export interface AxisTickColors {
   yAxis: string;
 }
 
+// radar chart axis text: angleAxis = category labels around the edge, radiusAxis = value scale
+export interface PolarAxisFontSizes {
+  angleAxis: number;
+  radiusAxis: number;
+}
+
+export interface PolarAxisColors {
+  angleAxis: string;
+  radiusAxis: string;
+}
+
 export interface DataRow {
   [key: string]: string | number;
 }
@@ -87,4 +98,6 @@ export interface SavedChartConfig {
   axisTickColors?: AxisTickColors;
   legendFontSize?: number;
   pieLabelFontSize?: number;
+  polarAxisFontSizes?: PolarAxisFontSizes;
+  polarAxisColors?: PolarAxisColors;
 }

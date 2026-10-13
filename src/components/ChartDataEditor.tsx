@@ -9,6 +9,8 @@ import type {
   ChartType,
   ColumnDef,
   DataRow,
+  PolarAxisColors,
+  PolarAxisFontSizes,
 } from '../types/chart';
 import {
   AXIS_LABEL_FONT_SIZES,
@@ -44,6 +46,10 @@ interface Props {
   onLegendFontSizeChange: (size: number) => void;
   pieLabelFontSize: number;
   onPieLabelFontSizeChange: (size: number) => void;
+  polarAxisFontSizes: PolarAxisFontSizes;
+  onPolarAxisFontSizesChange: (sizes: PolarAxisFontSizes) => void;
+  polarAxisColors: PolarAxisColors;
+  onPolarAxisColorsChange: (colors: PolarAxisColors) => void;
 }
 
 const SERIES_ADDABLE: ChartType[] = ['bar', 'line', 'area', 'radar'];
@@ -55,6 +61,11 @@ const AXIS_FIELDS: Array<{ key: keyof AxisColors; defaultLabel: string; renamabl
   { key: 'xAxis', defaultLabel: 'X-Axis', renamable: true },
   { key: 'yAxis', defaultLabel: 'Y-Axis', renamable: true },
   { key: 'grid', defaultLabel: 'Grid', renamable: false },
+];
+// radar axes shown in the Axes toolbar — text color and size only (the text itself comes from the data)
+const POLAR_AXIS_FIELDS: Array<{ key: keyof PolarAxisColors; label: string; hint: string }> = [
+  { key: 'angleAxis', label: 'Angle Axis', hint: 'Category labels around the chart' },
+  { key: 'radiusAxis', label: 'Radius Axis', hint: 'Value scale from the center' },
 ];
 
 export default function ChartDataEditor({
@@ -79,6 +90,10 @@ export default function ChartDataEditor({
   onLegendFontSizeChange,
   pieLabelFontSize,
   onPieLabelFontSizeChange,
+  polarAxisFontSizes,
+  onPolarAxisFontSizesChange,
+  polarAxisColors,
+  onPolarAxisColorsChange,
 }: Props) {
   const [editingColKey, setEditingColKey] = useState<string | null>(null);
   // header-level series color picker
@@ -91,6 +106,8 @@ export default function ChartDataEditor({
   const [axisColorTarget, setAxisColorTarget] = useState<'line' | 'ticks'>('line');
   // axis label popover (text, font size, color) — key is the AxisLabels field being edited
   const [editingAxisLabelKey, setEditingAxisLabelKey] = useState<keyof AxisLabels | null>(null);
+  // radar axis text popover — key is the PolarAxisColors field being edited
+  const [polarPickerKey, setPolarPickerKey] = useState<keyof PolarAxisColors | null>(null);
 
   const seriesColumns = columns.filter((c) => c.isSeries);
   const canAddSeries = SERIES_ADDABLE.includes(chartType) && seriesColumns.length < 6;
@@ -546,14 +563,7 @@ export default function ChartDataEditor({
                             : 'text-gray-300 italic hover:text-indigo-400'
                         }`}
                       >
-                        {/* text-color icon: "T" over a bar showing the current label color */}
-                        <span className="flex flex-col items-center shrink-0 leading-none not-italic">
-                          <span className="text-[11px] font-bold font-serif text-gray-600">T</span>
-                          <span
-                            className="w-2.5 h-0.75 mt-px rounded-sm ring-1 ring-gray-200"
-                            style={{ backgroundColor: axisLabelColors[labelKey] }}
-                          />
-                        </span>
+                        <TextColorIcon color={axisLabelColors[labelKey]} />
                         <span className="truncate">
                           {axisLabels[labelKey] || `${field.defaultLabel} Label`}
                         </span>
@@ -615,6 +625,50 @@ export default function ChartDataEditor({
         </div>
       )}
 
+      {chartType === 'radar' && (
+        <div className="px-4 py-3 border-t border-gray-200 shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Axes
+          </span>
+          {POLAR_AXIS_FIELDS.map((field) => (
+            <div key={field.key} className="relative flex items-center min-w-0">
+              <span
+                onClick={() => setPolarPickerKey(polarPickerKey === field.key ? null : field.key)}
+                title={`${field.hint} — click to edit size and color`}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-600 truncate cursor-pointer select-none"
+              >
+                <TextColorIcon color={polarAxisColors[field.key]} />
+                <span className="truncate">{field.label}</span>
+                <span className="shrink-0 text-gray-400">{polarAxisFontSizes[field.key]}px</span>
+              </span>
+              {polarPickerKey === field.key && (
+                <Popover placement="top" onClose={() => setPolarPickerKey(null)}>
+                  <ColorPicker
+                    color={polarAxisColors[field.key]}
+                    label={`${field.label} text`}
+                    closeOnSwatch={false}
+                    onChange={(hex) =>
+                      onPolarAxisColorsChange({ ...polarAxisColors, [field.key]: hex })
+                    }
+                    onClose={() => setPolarPickerKey(null)}
+                  >
+                    <FontSizeField
+                      label="Font size"
+                      value={polarAxisFontSizes[field.key]}
+                      sizes={AXIS_TICK_FONT_SIZES}
+                      onChange={(size) =>
+                        onPolarAxisFontSizesChange({ ...polarAxisFontSizes, [field.key]: size })
+                      }
+                      hint={field.hint}
+                    />
+                  </ColorPicker>
+                </Popover>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="px-4 py-3 border-t border-gray-200 shrink-0 flex items-center gap-3">
         <button
           onClick={addRow}
@@ -642,5 +696,18 @@ export default function ChartDataEditor({
         )}
       </div>
     </div>
+  );
+}
+
+// text-color icon: "T" over a bar showing the current text color
+function TextColorIcon({ color }: { color: string }) {
+  return (
+    <span className="flex flex-col items-center shrink-0 leading-none not-italic">
+      <span className="text-[11px] font-bold font-serif text-gray-600">T</span>
+      <span
+        className="w-2.5 h-0.75 mt-px rounded-sm ring-1 ring-gray-200"
+        style={{ backgroundColor: color }}
+      />
+    </span>
   );
 }
