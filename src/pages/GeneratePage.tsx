@@ -3,20 +3,32 @@ import ChartDataEditor from "../components/ChartDataEditor";
 import ChartPreview from "../components/ChartPreview";
 import type {
   AxisColors,
+  AxisLabelColors,
   AxisLabelFontSizes,
   AxisLabels,
+  AxisTickColors,
+  AxisTickFontSizes,
   ChartType,
   ChartVariants,
   ColumnDef,
   DataRow,
+  PolarAxisColors,
+  PolarAxisFontSizes,
   SavedChartConfig,
 } from "../types/chart";
 import {
   chartConfigs,
   defaultAxisColors,
+  defaultAxisLabelColors,
   defaultAxisLabelFontSizes,
   defaultAxisLabels,
+  defaultAxisTickColors,
+  defaultAxisTickFontSizes,
   defaultVariants,
+  DEFAULT_LEGEND_FONT_SIZE,
+  DEFAULT_PIE_LABEL_FONT_SIZE,
+  defaultPolarAxisColors,
+  defaultPolarAxisFontSizes,
   variantOptions,
 } from "../data/chartConfigs";
 import { useRef, useState } from "react";
@@ -64,6 +76,47 @@ export default function GeneratePage() {
       ? { ...defaultAxisLabelFontSizes, ...existingChartConfig.axisLabelFontSizes }
       : defaultAxisLabelFontSizes,
   );
+  // charts saved before label colors existed used the axis color for their labels
+  const [axisLabelColors, setAxisLabelColors] = useState<AxisLabelColors>(
+    existingChartConfig
+      ? {
+          xAxis: existingChartConfig.axisColors?.xAxis ?? defaultAxisLabelColors.xAxis,
+          yAxis: existingChartConfig.axisColors?.yAxis ?? defaultAxisLabelColors.yAxis,
+          ...existingChartConfig.axisLabelColors,
+        }
+      : defaultAxisLabelColors,
+  );
+  const [axisTickFontSizes, setAxisTickFontSizes] = useState<AxisTickFontSizes>(
+    existingChartConfig
+      ? { ...defaultAxisTickFontSizes, ...existingChartConfig.axisTickFontSizes }
+      : defaultAxisTickFontSizes,
+  );
+  // charts saved before tick colors existed used the axis color for their ticks
+  const [axisTickColors, setAxisTickColors] = useState<AxisTickColors>(
+    existingChartConfig
+      ? {
+          xAxis: existingChartConfig.axisColors?.xAxis ?? defaultAxisTickColors.xAxis,
+          yAxis: existingChartConfig.axisColors?.yAxis ?? defaultAxisTickColors.yAxis,
+          ...existingChartConfig.axisTickColors,
+        }
+      : defaultAxisTickColors,
+  );
+  const [legendFontSize, setLegendFontSize] = useState<number>(
+    existingChartConfig?.legendFontSize ?? DEFAULT_LEGEND_FONT_SIZE,
+  );
+  const [pieLabelFontSize, setPieLabelFontSize] = useState<number>(
+    existingChartConfig?.pieLabelFontSize ?? DEFAULT_PIE_LABEL_FONT_SIZE,
+  );
+  const [polarAxisFontSizes, setPolarAxisFontSizes] = useState<PolarAxisFontSizes>(
+    existingChartConfig
+      ? { ...defaultPolarAxisFontSizes, ...existingChartConfig.polarAxisFontSizes }
+      : defaultPolarAxisFontSizes,
+  );
+  const [polarAxisColors, setPolarAxisColors] = useState<PolarAxisColors>(
+    existingChartConfig
+      ? { ...defaultPolarAxisColors, ...existingChartConfig.polarAxisColors }
+      : defaultPolarAxisColors,
+  );
   const [isExporting, setIsExporting] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +140,13 @@ export default function GeneratePage() {
           axisColors,
           axisLabels,
           axisLabelFontSizes,
+          axisLabelColors,
+          axisTickFontSizes,
+          axisTickColors,
+          legendFontSize,
+          pieLabelFontSize,
+          polarAxisFontSizes,
+          polarAxisColors,
         },
       });
     } finally {
@@ -103,6 +163,13 @@ export default function GeneratePage() {
     setAxisColors(defaultAxisColors);
     setAxisLabels(defaultAxisLabels);
     setAxisLabelFontSizes(defaultAxisLabelFontSizes);
+    setAxisLabelColors(defaultAxisLabelColors);
+    setAxisTickFontSizes(defaultAxisTickFontSizes);
+    setAxisTickColors(defaultAxisTickColors);
+    setLegendFontSize(DEFAULT_LEGEND_FONT_SIZE);
+    setPieLabelFontSize(DEFAULT_PIE_LABEL_FONT_SIZE);
+    setPolarAxisFontSizes(defaultPolarAxisFontSizes);
+    setPolarAxisColors(defaultPolarAxisColors);
     setStep("edit");
   };
 
@@ -227,6 +294,20 @@ export default function GeneratePage() {
                 onAxisLabelsChange={setAxisLabels}
                 axisLabelFontSizes={axisLabelFontSizes}
                 onAxisLabelFontSizesChange={setAxisLabelFontSizes}
+                axisLabelColors={axisLabelColors}
+                onAxisLabelColorsChange={setAxisLabelColors}
+                axisTickFontSizes={axisTickFontSizes}
+                onAxisTickFontSizesChange={setAxisTickFontSizes}
+                axisTickColors={axisTickColors}
+                onAxisTickColorsChange={setAxisTickColors}
+                legendFontSize={legendFontSize}
+                onLegendFontSizeChange={setLegendFontSize}
+                pieLabelFontSize={pieLabelFontSize}
+                onPieLabelFontSizeChange={setPieLabelFontSize}
+                polarAxisFontSizes={polarAxisFontSizes}
+                onPolarAxisFontSizesChange={setPolarAxisFontSizes}
+                polarAxisColors={polarAxisColors}
+                onPolarAxisColorsChange={setPolarAxisColors}
               />
             </div>
 
@@ -239,6 +320,13 @@ export default function GeneratePage() {
                 axisColors={axisColors}
                 axisLabels={axisLabels}
                 axisLabelFontSizes={axisLabelFontSizes}
+                axisLabelColors={axisLabelColors}
+                axisTickFontSizes={axisTickFontSizes}
+                axisTickColors={axisTickColors}
+                legendFontSize={legendFontSize}
+                pieLabelFontSize={pieLabelFontSize}
+                polarAxisFontSizes={polarAxisFontSizes}
+                polarAxisColors={polarAxisColors}
                 containerRef={chartContainerRef}
               />
             </div>

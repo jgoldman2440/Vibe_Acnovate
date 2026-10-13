@@ -1,8 +1,28 @@
-import { useState, useEffect } from 'react';
-import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartType, ColumnDef, DataRow } from '../types/chart';
-import { AXIS_LABEL_FONT_SIZES, COLORS } from '../data/chartConfigs';
+import { useState } from 'react';
+import type {
+  AxisColors,
+  AxisLabelColors,
+  AxisLabelFontSizes,
+  AxisLabels,
+  AxisTickColors,
+  AxisTickFontSizes,
+  ChartType,
+  ColumnDef,
+  DataRow,
+  PolarAxisColors,
+  PolarAxisFontSizes,
+} from '../types/chart';
+import {
+  AXIS_LABEL_FONT_SIZES,
+  AXIS_TICK_FONT_SIZES,
+  COLORS,
+  LEGEND_FONT_SIZES,
+  PIE_LABEL_FONT_SIZES,
+} from '../data/chartConfigs';
 import { parseAccountingNumber } from '../utils/numberParsing';
 import ColorPicker from './ColorPicker';
+import FontSizeField from './FontSizeField';
+import Popover from './Popover';
 
 interface Props {
   chartType: ChartType;
@@ -16,6 +36,20 @@ interface Props {
   onAxisLabelsChange: (labels: AxisLabels) => void;
   axisLabelFontSizes: AxisLabelFontSizes;
   onAxisLabelFontSizesChange: (sizes: AxisLabelFontSizes) => void;
+  axisLabelColors: AxisLabelColors;
+  onAxisLabelColorsChange: (colors: AxisLabelColors) => void;
+  axisTickFontSizes: AxisTickFontSizes;
+  onAxisTickFontSizesChange: (sizes: AxisTickFontSizes) => void;
+  axisTickColors: AxisTickColors;
+  onAxisTickColorsChange: (colors: AxisTickColors) => void;
+  legendFontSize: number;
+  onLegendFontSizeChange: (size: number) => void;
+  pieLabelFontSize: number;
+  onPieLabelFontSizeChange: (size: number) => void;
+  polarAxisFontSizes: PolarAxisFontSizes;
+  onPolarAxisFontSizesChange: (sizes: PolarAxisFontSizes) => void;
+  polarAxisColors: PolarAxisColors;
+  onPolarAxisColorsChange: (colors: PolarAxisColors) => void;
 }
 
 const SERIES_ADDABLE: ChartType[] = ['bar', 'line', 'area', 'radar'];
@@ -27,6 +61,11 @@ const AXIS_FIELDS: Array<{ key: keyof AxisColors; defaultLabel: string; renamabl
   { key: 'xAxis', defaultLabel: 'X-Axis', renamable: true },
   { key: 'yAxis', defaultLabel: 'Y-Axis', renamable: true },
   { key: 'grid', defaultLabel: 'Grid', renamable: false },
+];
+// radar axes shown in the Axes toolbar — text color and size only (the text itself comes from the data)
+const POLAR_AXIS_FIELDS: Array<{ key: keyof PolarAxisColors; label: string; hint: string }> = [
+  { key: 'angleAxis', label: 'Angle Axis', hint: 'Category labels around the chart' },
+  { key: 'radiusAxis', label: 'Radius Axis', hint: 'Value scale from the center' },
 ];
 
 export default function ChartDataEditor({
@@ -41,6 +80,20 @@ export default function ChartDataEditor({
   onAxisLabelsChange,
   axisLabelFontSizes,
   onAxisLabelFontSizesChange,
+  axisLabelColors,
+  onAxisLabelColorsChange,
+  axisTickFontSizes,
+  onAxisTickFontSizesChange,
+  axisTickColors,
+  onAxisTickColorsChange,
+  legendFontSize,
+  onLegendFontSizeChange,
+  pieLabelFontSize,
+  onPieLabelFontSizeChange,
+  polarAxisFontSizes,
+  onPolarAxisFontSizesChange,
+  polarAxisColors,
+  onPolarAxisColorsChange,
 }: Props) {
   const [editingColKey, setEditingColKey] = useState<string | null>(null);
   // header-level series color picker
@@ -49,37 +102,12 @@ export default function ChartDataEditor({
   const [cellPickerKey, setCellPickerKey] = useState<string | null>(null);
   // axis/grid color picker — key is the AxisColors field being edited
   const [axisPickerKey, setAxisPickerKey] = useState<keyof AxisColors | null>(null);
-  // axis label being renamed inline — key is the AxisLabels field being edited
+  // which part of the x/y axis the axis picker's color applies to
+  const [axisColorTarget, setAxisColorTarget] = useState<'line' | 'ticks'>('line');
+  // axis label popover (text, font size, color) — key is the AxisLabels field being edited
   const [editingAxisLabelKey, setEditingAxisLabelKey] = useState<keyof AxisLabels | null>(null);
-
-  useEffect(() => {
-    if (!colorPickerKey) return;
-    const close = () => setColorPickerKey(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [colorPickerKey]);
-
-  useEffect(() => {
-    if (!cellPickerKey) return;
-    const close = () => setCellPickerKey(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [cellPickerKey]);
-
-  useEffect(() => {
-    if (!axisPickerKey) return;
-    const close = () => setAxisPickerKey(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [axisPickerKey]);
-
-  useEffect(() => {
-    if (!editingAxisLabelKey) return;
-    const close = () => handleAxisLabelBlur(editingAxisLabelKey);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingAxisLabelKey]);
+  // radar axis text popover — key is the PolarAxisColors field being edited
+  const [polarPickerKey, setPolarPickerKey] = useState<keyof PolarAxisColors | null>(null);
 
   const seriesColumns = columns.filter((c) => c.isSeries);
   const canAddSeries = SERIES_ADDABLE.includes(chartType) && seriesColumns.length < 6;
@@ -276,16 +304,21 @@ export default function ChartDataEditor({
                               style={{ backgroundColor: dotColor }}
                             />
                             {colorPickerKey === col.key && (
-                              <div
-                                className="absolute top-full left-0 mt-2 z-30"
-                                onClick={(e) => e.stopPropagation()}
-                              >
+                              <Popover placement="bottom" onClose={() => setColorPickerKey(null)}>
                                 <ColorPicker
                                   color={dotColor}
                                   onChange={(hex) => handleSeriesColorChange(col.key, hex)}
                                   onClose={() => setColorPickerKey(null)}
-                                />
-                              </div>
+                                >
+                                  <FontSizeField
+                                    label="Legend font size"
+                                    value={legendFontSize}
+                                    sizes={LEGEND_FONT_SIZES}
+                                    onChange={onLegendFontSizeChange}
+                                    hint="Applies to all series"
+                                  />
+                                </ColorPicker>
+                              </Popover>
                             )}
                           </div>
                         )}
@@ -350,16 +383,28 @@ export default function ChartDataEditor({
                             style={{ backgroundColor: sliceColor }}
                           />
                           {cellPickerKey === pickerKey && (
-                            <div
-                              className="absolute top-full left-0 mt-1 z-30"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <Popover placement="bottom" onClose={() => setCellPickerKey(null)}>
                               <ColorPicker
                                 color={sliceColor}
+                                label="Slice color"
                                 onChange={(hex) => handleSliceColorChange(rowIdx, col.key, hex)}
                                 onClose={() => setCellPickerKey(null)}
-                              />
-                            </div>
+                              >
+                                <FontSizeField
+                                  label="Slice label font size"
+                                  value={pieLabelFontSize}
+                                  sizes={PIE_LABEL_FONT_SIZES}
+                                  onChange={onPieLabelFontSizeChange}
+                                />
+                                <FontSizeField
+                                  label="Legend font size"
+                                  value={legendFontSize}
+                                  sizes={LEGEND_FONT_SIZES}
+                                  onChange={onLegendFontSizeChange}
+                                  hint="Both apply to all slices"
+                                />
+                              </ColorPicker>
+                            </Popover>
                           )}
                         </div>
                       </td>
@@ -414,85 +459,210 @@ export default function ChartDataEditor({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (editingAxisLabelKey) handleAxisLabelBlur(editingAxisLabelKey);
+                  setAxisColorTarget('line');
                   setAxisPickerKey(axisPickerKey === field.key ? null : field.key);
                 }}
-                title={`Change ${field.defaultLabel.toLowerCase()} color`}
+                title={
+                  field.renamable
+                    ? `Change ${field.defaultLabel.toLowerCase()} line and tick style`
+                    : `Change ${field.defaultLabel.toLowerCase()} color`
+                }
                 className="w-4 h-4 rounded-full ring-1 ring-gray-200 ring-offset-1 hover:ring-2 hover:ring-indigo-300 transition-all focus:outline-none shrink-0"
                 style={{ backgroundColor: axisColors[field.key] }}
               />
               {axisPickerKey === field.key && (
-                <div
-                  className="absolute bottom-full left-0 mb-2 z-30"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ColorPicker
-                    color={axisColors[field.key]}
-                    label={`${field.defaultLabel} color`}
-                    onChange={(hex) =>
-                      onAxisColorsChange({ ...axisColors, [field.key]: hex })
-                    }
-                    onClose={() => setAxisPickerKey(null)}
-                  />
-                </div>
+                <Popover placement="top" onClose={() => setAxisPickerKey(null)}>
+                  {field.renamable ? (
+                    (() => {
+                      const tickKey = field.key as keyof AxisTickColors;
+                      const editingTicks = axisColorTarget === 'ticks';
+                      return (
+                        <ColorPicker
+                          // remount when switching target so the hex/RGB inputs pick up the new color
+                          key={axisColorTarget}
+                          color={editingTicks ? axisTickColors[tickKey] : axisColors[field.key]}
+                          label={field.defaultLabel}
+                          closeOnSwatch={false}
+                          onChange={(hex) =>
+                            editingTicks
+                              ? onAxisTickColorsChange({ ...axisTickColors, [tickKey]: hex })
+                              : onAxisColorsChange({ ...axisColors, [field.key]: hex })
+                          }
+                          onClose={() => setAxisPickerKey(null)}
+                        >
+                          <div>
+                            <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                              Color for
+                            </label>
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-gray-100 rounded">
+                              {(['line', 'ticks'] as const).map((target) => (
+                                <button
+                                  key={target}
+                                  onClick={() => setAxisColorTarget(target)}
+                                  className={`flex items-center justify-center gap-1 py-0.5 text-xs rounded transition-colors ${
+                                    axisColorTarget === target
+                                      ? 'bg-white text-gray-700 shadow-sm'
+                                      : 'text-gray-500 hover:text-gray-700'
+                                  }`}
+                                >
+                                  <span
+                                    className="w-2 h-2 rounded-sm ring-1 ring-gray-200"
+                                    style={{
+                                      backgroundColor:
+                                        target === 'ticks'
+                                          ? axisTickColors[tickKey]
+                                          : axisColors[field.key],
+                                    }}
+                                  />
+                                  {target === 'line' ? 'Line' : 'Ticks'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <FontSizeField
+                            label="Tick font size"
+                            value={axisTickFontSizes[tickKey]}
+                            sizes={AXIS_TICK_FONT_SIZES}
+                            onChange={(size) =>
+                              onAxisTickFontSizesChange({ ...axisTickFontSizes, [tickKey]: size })
+                            }
+                          />
+                        </ColorPicker>
+                      );
+                    })()
+                  ) : (
+                    <ColorPicker
+                      color={axisColors[field.key]}
+                      label={`${field.defaultLabel} color`}
+                      onChange={(hex) =>
+                        onAxisColorsChange({ ...axisColors, [field.key]: hex })
+                      }
+                      onClose={() => setAxisPickerKey(null)}
+                    />
+                  )}
+                </Popover>
               )}
 
               {field.renamable ? (
-                editingAxisLabelKey === field.key ? (
-                  <input
-                    type="text"
-                    autoFocus
-                    value={axisLabels[field.key as keyof AxisLabels]}
-                    onChange={(e) =>
-                      onAxisLabelsChange({ ...axisLabels, [field.key]: e.target.value })
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                    onBlur={() => handleAxisLabelBlur(field.key as keyof AxisLabels)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === 'Escape') {
-                        handleAxisLabelBlur(field.key as keyof AxisLabels);
-                      }
-                      e.stopPropagation();
-                    }}
-                    className="w-24 px-1.5 py-0.5 text-xs bg-white border border-indigo-400 rounded focus:outline-none"
-                  />
-                ) : (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingAxisLabelKey(field.key as keyof AxisLabels);
-                    }}
-                    title="Click to set label"
-                    className={`text-xs truncate cursor-text select-none ${
-                      axisLabels[field.key as keyof AxisLabels]
-                        ? 'text-gray-500 hover:text-indigo-600'
-                        : 'text-gray-300 italic hover:text-indigo-400'
-                    }`}
-                  >
-                    {axisLabels[field.key as keyof AxisLabels] || `${field.defaultLabel} Label`}
-                  </span>
-                )
+                (() => {
+                  const labelKey = field.key as keyof AxisLabels;
+                  return (
+                    <>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAxisPickerKey(null);
+                          if (editingAxisLabelKey === labelKey) handleAxisLabelBlur(labelKey);
+                          else setEditingAxisLabelKey(labelKey);
+                        }}
+                        title="Click to edit label, size and color"
+                        className={`flex items-center gap-1 text-xs truncate cursor-pointer select-none ${
+                          axisLabels[labelKey]
+                            ? 'text-gray-500 hover:text-indigo-600'
+                            : 'text-gray-300 italic hover:text-indigo-400'
+                        }`}
+                      >
+                        <TextColorIcon color={axisLabelColors[labelKey]} />
+                        <span className="truncate">
+                          {axisLabels[labelKey] || `${field.defaultLabel} Label`}
+                        </span>
+                        <span className="shrink-0 text-gray-400 not-italic">
+                          {axisLabelFontSizes[labelKey]}px
+                        </span>
+                      </span>
+                      {editingAxisLabelKey === labelKey && (
+                        <Popover placement="top" onClose={() => handleAxisLabelBlur(labelKey)}>
+                          <ColorPicker
+                            color={axisLabelColors[labelKey]}
+                            label={`${field.defaultLabel} label`}
+                            closeOnSwatch={false}
+                            onChange={(hex) =>
+                              onAxisLabelColorsChange({ ...axisLabelColors, [labelKey]: hex })
+                            }
+                            onClose={() => handleAxisLabelBlur(labelKey)}
+                          >
+                            <div>
+                              <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                Text
+                              </label>
+                              <input
+                                type="text"
+                                autoFocus
+                                value={axisLabels[labelKey]}
+                                placeholder={`${field.defaultLabel} Label`}
+                                onChange={(e) =>
+                                  onAxisLabelsChange({ ...axisLabels, [labelKey]: e.target.value })
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === 'Escape') {
+                                    handleAxisLabelBlur(labelKey);
+                                  }
+                                  e.stopPropagation();
+                                }}
+                                className="block w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-indigo-400"
+                              />
+                            </div>
+                            <FontSizeField
+                              label="Font size"
+                              value={axisLabelFontSizes[labelKey]}
+                              sizes={AXIS_LABEL_FONT_SIZES}
+                              onChange={(size) =>
+                                onAxisLabelFontSizesChange({ ...axisLabelFontSizes, [labelKey]: size })
+                              }
+                            />
+                          </ColorPicker>
+                        </Popover>
+                      )}
+                    </>
+                  );
+                })()
               ) : (
                 <span className="text-xs text-gray-500">{field.defaultLabel}</span>
               )}
+            </div>
+          ))}
+        </div>
+      )}
 
-              {field.renamable && (
-                <select
-                  value={axisLabelFontSizes[field.key as keyof AxisLabelFontSizes]}
-                  onChange={(e) =>
-                    onAxisLabelFontSizesChange({
-                      ...axisLabelFontSizes,
-                      [field.key]: Number(e.target.value),
-                    })
-                  }
-                  title={`${field.defaultLabel} label font size`}
-                  className="shrink-0 px-1 py-0.5 text-xs text-gray-500 bg-transparent border border-gray-200 rounded hover:border-gray-300 focus:border-indigo-500 focus:outline-none cursor-pointer"
-                >
-                  {AXIS_LABEL_FONT_SIZES.map((size) => (
-                    <option key={size} value={size}>
-                      {size}px
-                    </option>
-                  ))}
-                </select>
+      {chartType === 'radar' && (
+        <div className="px-4 py-3 border-t border-gray-200 shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Axes
+          </span>
+          {POLAR_AXIS_FIELDS.map((field) => (
+            <div key={field.key} className="relative flex items-center min-w-0">
+              <span
+                onClick={() => setPolarPickerKey(polarPickerKey === field.key ? null : field.key)}
+                title={`${field.hint} — click to edit size and color`}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-600 truncate cursor-pointer select-none"
+              >
+                <TextColorIcon color={polarAxisColors[field.key]} />
+                <span className="truncate">{field.label}</span>
+                <span className="shrink-0 text-gray-400">{polarAxisFontSizes[field.key]}px</span>
+              </span>
+              {polarPickerKey === field.key && (
+                <Popover placement="top" onClose={() => setPolarPickerKey(null)}>
+                  <ColorPicker
+                    color={polarAxisColors[field.key]}
+                    label={`${field.label} text`}
+                    closeOnSwatch={false}
+                    onChange={(hex) =>
+                      onPolarAxisColorsChange({ ...polarAxisColors, [field.key]: hex })
+                    }
+                    onClose={() => setPolarPickerKey(null)}
+                  >
+                    <FontSizeField
+                      label="Font size"
+                      value={polarAxisFontSizes[field.key]}
+                      sizes={AXIS_TICK_FONT_SIZES}
+                      onChange={(size) =>
+                        onPolarAxisFontSizesChange({ ...polarAxisFontSizes, [field.key]: size })
+                      }
+                      hint={field.hint}
+                    />
+                  </ColorPicker>
+                </Popover>
               )}
             </div>
           ))}
@@ -526,5 +696,18 @@ export default function ChartDataEditor({
         )}
       </div>
     </div>
+  );
+}
+
+// text-color icon: "T" over a bar showing the current text color
+function TextColorIcon({ color }: { color: string }) {
+  return (
+    <span className="flex flex-col items-center shrink-0 leading-none not-italic">
+      <span className="text-[11px] font-bold font-serif text-gray-600">T</span>
+      <span
+        className="w-2.5 h-0.75 mt-px rounded-sm ring-1 ring-gray-200"
+        style={{ backgroundColor: color }}
+      />
+    </span>
   );
 }

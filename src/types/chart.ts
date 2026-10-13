@@ -33,6 +33,35 @@ export interface AxisLabelFontSizes {
   yAxis: number;
 }
 
+// fill color of the axis title labels (independent of the axis line/tick color)
+export interface AxisLabelColors {
+  xAxis: string;
+  yAxis: string;
+}
+
+// font size (px) of the axis tick values
+export interface AxisTickFontSizes {
+  xAxis: number;
+  yAxis: number;
+}
+
+// fill color of the axis tick values (independent of the axis line color)
+export interface AxisTickColors {
+  xAxis: string;
+  yAxis: string;
+}
+
+// radar chart axis text: angleAxis = category labels around the edge, radiusAxis = value scale
+export interface PolarAxisFontSizes {
+  angleAxis: number;
+  radiusAxis: number;
+}
+
+export interface PolarAxisColors {
+  angleAxis: string;
+  radiusAxis: string;
+}
+
 export interface DataRow {
   [key: string]: string | number;
 }
@@ -64,4 +93,11 @@ export interface SavedChartConfig {
   axisColors?: AxisColors;
   axisLabels?: AxisLabels;
   axisLabelFontSizes?: AxisLabelFontSizes;
+  axisLabelColors?: AxisLabelColors;
+  axisTickFontSizes?: AxisTickFontSizes;
+  axisTickColors?: AxisTickColors;
+  legendFontSize?: number;
+  pieLabelFontSize?: number;
+  polarAxisFontSizes?: PolarAxisFontSizes;
+  polarAxisColors?: PolarAxisColors;
 }

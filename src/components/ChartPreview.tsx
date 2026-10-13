@@ -23,8 +23,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartType, ChartVariants, ColumnDef, DataRow } from '../types/chart';
-import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelFontSizes, defaultAxisLabels } from '../data/chartConfigs';
+import type { AxisColors, AxisLabelColors, AxisLabelFontSizes, AxisLabels, AxisTickColors, AxisTickFontSizes, ChartType, ChartVariants, ColumnDef, DataRow, PolarAxisColors, PolarAxisFontSizes } from '../types/chart';
+import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelColors, defaultAxisLabelFontSizes, defaultAxisLabels, defaultAxisTickColors, defaultAxisTickFontSizes, DEFAULT_LEGEND_FONT_SIZE, DEFAULT_PIE_LABEL_FONT_SIZE, defaultPolarAxisColors, defaultPolarAxisFontSizes } from '../data/chartConfigs';
 
 const LEGEND_WRAPPER_STYLE: React.CSSProperties = { paddingTop: '25px' };
 
@@ -36,6 +36,13 @@ interface Props {
   axisColors?: AxisColors;
   axisLabels?: AxisLabels;
   axisLabelFontSizes?: AxisLabelFontSizes;
+  axisLabelColors?: AxisLabelColors;
+  axisTickFontSizes?: AxisTickFontSizes;
+  axisTickColors?: AxisTickColors;
+  legendFontSize?: number;
+  pieLabelFontSize?: number;
+  polarAxisFontSizes?: PolarAxisFontSizes;
+  polarAxisColors?: PolarAxisColors;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -47,6 +54,13 @@ export default function ChartPreview({
   axisColors = defaultAxisColors,
   axisLabels = defaultAxisLabels,
   axisLabelFontSizes = defaultAxisLabelFontSizes,
+  axisLabelColors = defaultAxisLabelColors,
+  axisTickFontSizes = defaultAxisTickFontSizes,
+  axisTickColors = defaultAxisTickColors,
+  legendFontSize = DEFAULT_LEGEND_FONT_SIZE,
+  pieLabelFontSize = DEFAULT_PIE_LABEL_FONT_SIZE,
+  polarAxisFontSizes = defaultPolarAxisFontSizes,
+  polarAxisColors = defaultPolarAxisColors,
   containerRef,
 }: Props) {
   return (
@@ -61,7 +75,7 @@ export default function ChartPreview({
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes)}
+            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes, axisLabelColors, axisTickFontSizes, axisTickColors, legendFontSize, pieLabelFontSize, polarAxisFontSizes, polarAxisColors)}
           </ResponsiveContainer>
         )}
       </div>
@@ -88,23 +102,43 @@ function renderChart(
   axisColors: AxisColors,
   axisLabels: AxisLabels,
   axisLabelFontSizes: AxisLabelFontSizes,
+  axisLabelColors: AxisLabelColors,
+  axisTickFontSizes: AxisTickFontSizes,
+  axisTickColors: AxisTickColors,
+  legendFontSize: number,
+  pieLabelFontSize: number,
+  polarAxisFontSizes: PolarAxisFontSizes,
+  polarAxisColors: PolarAxisColors,
 ) {
+  // legend icons scale with the text (recharts default: 14px icon next to ~16px text)
+  const legendProps = {
+    wrapperStyle: { ...LEGEND_WRAPPER_STYLE, fontSize: legendFontSize },
+    iconSize: Math.round((legendFontSize * 14) / 16),
+  };
   const seriesCols   = columns.filter((c) => c.isSeries);
   const categoryKey  = columns.find((c) => c.type === 'text')?.key ?? chartConfigs[chartType].categoryKey;
   const xFontSize    = axisLabelFontSizes.xAxis;
   const yFontSize    = axisLabelFontSizes.yAxis;
-  // margins/offsets scale with label font size so larger labels don't clip or overlap tick text
+  const xTick        = { fontSize: axisTickFontSizes.xAxis, fill: axisTickColors.xAxis };
+  const yTick        = { fontSize: axisTickFontSizes.yAxis, fill: axisTickColors.yAxis };
+  // axis area grows with tick font size (recharts defaults: 30px tall X-axis, 60px wide Y-axis at 11px ticks).
+  // The X-axis title is reserved inside the axis area rather than the bottom margin: recharts lays the
+  // legend out directly below the X-axis area, so a title spilling into the margin would overlap it.
+  const xAxisHeight        = axisTickFontSizes.xAxis + 19 + (axisLabels.xAxis ? xFontSize + 6 : 0);
+  const yAxisWidth         = Math.round((60 * axisTickFontSizes.yAxis) / 11);
+  const categoryYAxisWidth = Math.round((70 * axisTickFontSizes.yAxis) / 11);
+  // left margin scales with label font size so larger Y labels don't clip or overlap tick text
   const margin       = {
     top: 10,
     right: 24,
     left: axisLabels.yAxis ? yFontSize + 8 : 0,
-    bottom: axisLabels.xAxis ? xFontSize + 8 : 5,
+    bottom: 5,
   };
   const xAxisLabel = axisLabels.xAxis
-    ? { value: axisLabels.xAxis, position: 'insideBottom' as const, offset: -(xFontSize - 2), style: { fill: axisColors.xAxis, fontSize: xFontSize } }
+    ? { value: axisLabels.xAxis, position: 'insideBottom' as const, offset: 0, style: { fill: axisLabelColors.xAxis, fontSize: xFontSize } }
     : undefined;
   const yAxisLabel = axisLabels.yAxis
-    ? { value: axisLabels.yAxis, angle: -90, position: 'insideLeft' as const, style: { fill: axisColors.yAxis, fontSize: yFontSize }, offset: 16 - yFontSize / 2 }
+    ? { value: axisLabels.yAxis, angle: -90, position: 'insideLeft' as const, textAnchor: 'middle' as const, style: { fill: axisLabelColors.yAxis, fontSize: yFontSize }, offset: 16 - yFontSize / 2 }
     : undefined;
 
   switch (chartType) {
@@ -119,17 +153,17 @@ function renderChart(
         return (
           <BarChart layout="vertical" data={chartData} margin={{ ...margin, left: axisLabels.yAxis ? yFontSize + 24 : 16 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-            <XAxis type="number" tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
+            <XAxis type="number" tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
             <YAxis
               dataKey={categoryKey}
               type="category"
-              width={70}
-              tick={{ fontSize: 11, fill: axisColors.yAxis }}
+              width={categoryYAxisWidth}
+              tick={yTick}
               stroke={axisColors.yAxis}
               label={yAxisLabel}
             />
             <Tooltip />
-            <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+            <Legend {...legendProps} />
             {seriesCols.map((col, i) => (
               <Bar key={col.key} dataKey={col.key} name={col.label} fill={col.color ?? COLORS[i % COLORS.length]} />
             ))}
@@ -140,15 +174,16 @@ function renderChart(
       return (
         <BarChart data={chartData} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <XAxis dataKey={categoryKey} tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
           <YAxis
-            tick={{ fontSize: 11, fill: axisColors.yAxis }}
+            tick={yTick}
+            width={yAxisWidth}
             stroke={axisColors.yAxis}
             tickFormatter={v === 'stacked100' ? (val) => `${val}%` : undefined}
             label={yAxisLabel}
           />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
           {seriesCols.map((col, i) => (
             <Bar
               key={col.key}
@@ -171,10 +206,10 @@ function renderChart(
       return (
         <LineChart data={data} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
-          <YAxis tick={{ fontSize: 11, fill: axisColors.yAxis }} stroke={axisColors.yAxis} label={yAxisLabel} />
+          <XAxis dataKey={categoryKey} tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <YAxis tick={yTick} width={yAxisWidth} stroke={axisColors.yAxis} label={yAxisLabel} />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
           {seriesCols.map((col, i) => (
             <Line
               key={col.key}
@@ -201,15 +236,16 @@ function renderChart(
       return (
         <AreaChart data={chartData} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <XAxis dataKey={categoryKey} tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
           <YAxis
-            tick={{ fontSize: 11, fill: axisColors.yAxis }}
+            tick={yTick}
+            width={yAxisWidth}
             stroke={axisColors.yAxis}
             tickFormatter={v === 'stacked100' ? (val) => `${val}%` : undefined}
             label={yAxisLabel}
           />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
           {seriesCols.map((col, i) => (
             <Area
               key={col.key}
@@ -255,11 +291,11 @@ function renderChart(
             innerRadius={innerRadius}
             startAngle={startAngle}
             endAngle={endAngle}
-            label
+            label={{ fontSize: pieLabelFontSize }}
             labelLine
           />
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
         </PieChart>
       );
     }
@@ -271,8 +307,8 @@ function renderChart(
       return (
         <ScatterChart margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey="x" type="number" name="X" tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
-          <YAxis dataKey="y" type="number" name="Y" tick={{ fontSize: 11, fill: axisColors.yAxis }} stroke={axisColors.yAxis} label={yAxisLabel} />
+          <XAxis dataKey="x" type="number" name="X" tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <YAxis dataKey="y" type="number" name="Y" tick={yTick} width={yAxisWidth} stroke={axisColors.yAxis} label={yAxisLabel} />
           {v === 'bubble' && <ZAxis dataKey="size" range={[40, 500]} name="Size" />}
           <Tooltip cursor={{ strokeDasharray: '3 3' }} />
           <Scatter name={categoryKey} data={data} fill={COLORS[0]} />
@@ -289,8 +325,13 @@ function renderChart(
       return (
         <RadarChart cx="50%" cy="50%" outerRadius="60%" data={data}>
           <PolarGrid />
-          <PolarAngleAxis dataKey={categoryKey} tick={{ fontSize: 11 }} />
-          <PolarRadiusAxis tick={{ fontSize: 10 }} />
+          <PolarAngleAxis
+            dataKey={categoryKey}
+            tick={{ fontSize: polarAxisFontSizes.angleAxis, fill: polarAxisColors.angleAxis }}
+          />
+          <PolarRadiusAxis
+            tick={{ fontSize: polarAxisFontSizes.radiusAxis, fill: polarAxisColors.radiusAxis }}
+          />
           {seriesCols.map((col, i) => {
             const c = col.color ?? COLORS[i % COLORS.length];
             return (
@@ -306,7 +347,7 @@ function renderChart(
             );
           })}
           <Tooltip />
-          <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
+          <Legend {...legendProps} />
         </RadarChart>
       );
     }

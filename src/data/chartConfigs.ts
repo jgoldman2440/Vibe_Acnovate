@@ -1,4 +1,4 @@
-import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartConfig, ChartType, ChartVariants } from '../types/chart';
+import type { AxisColors, AxisLabelColors, AxisLabelFontSizes, AxisLabels, AxisTickColors, AxisTickFontSizes, ChartConfig, ChartType, ChartVariants, PolarAxisColors, PolarAxisFontSizes } from '../types/chart';
 
 export const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899'];
 
@@ -18,7 +18,46 @@ export const defaultAxisLabelFontSizes: AxisLabelFontSizes = {
   yAxis: 18,
 };
 
-export const AXIS_LABEL_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 26, 28, 30];
+export const defaultAxisLabelColors: AxisLabelColors = {
+  xAxis: '#666666',
+  yAxis: '#666666',
+};
+
+export const AXIS_LABEL_FONT_SIZES = [8, 12, 14, 16, 18, 24, 26, 28, 30, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72];
+
+export const defaultAxisTickFontSizes: AxisTickFontSizes = {
+  xAxis: 11,
+  yAxis: 11,
+};
+
+export const defaultAxisTickColors: AxisTickColors = {
+  xAxis: '#666666',
+  yAxis: '#666666',
+};
+
+export const AXIS_TICK_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 26, 28, 30, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72];
+
+// legend text size (px); 16 matches the inherited browser default the legend used before it was configurable
+export const DEFAULT_LEGEND_FONT_SIZE = 16;
+
+export const LEGEND_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72];
+
+// pie slice value label size (px); 16 matches the inherited SVG default used before it was configurable
+export const DEFAULT_PIE_LABEL_FONT_SIZE = 16;
+
+export const PIE_LABEL_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48];
+
+// radar axis text; sizes match the values the preview hardcoded before they were configurable.
+// Font size options reuse AXIS_TICK_FONT_SIZES since both are axis tick text.
+export const defaultPolarAxisFontSizes: PolarAxisFontSizes = {
+  angleAxis: 11,
+  radiusAxis: 10,
+};
+
+export const defaultPolarAxisColors: PolarAxisColors = {
+  angleAxis: '#666666',
+  radiusAxis: '#666666',
+};
 
 export const chartConfigs: Record<ChartType, ChartConfig> = {
   bar: {
