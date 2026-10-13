@@ -13,6 +13,7 @@ import type {
 import { AXIS_LABEL_FONT_SIZES, AXIS_TICK_FONT_SIZES, COLORS } from '../data/chartConfigs';
 import { parseAccountingNumber } from '../utils/numberParsing';
 import ColorPicker from './ColorPicker';
+import Popover from './Popover';
 
 interface Props {
   chartType: ChartType;
@@ -300,16 +301,13 @@ export default function ChartDataEditor({
                               style={{ backgroundColor: dotColor }}
                             />
                             {colorPickerKey === col.key && (
-                              <div
-                                className="absolute top-full left-0 mt-2 z-30"
-                                onClick={(e) => e.stopPropagation()}
-                              >
+                              <Popover placement="bottom">
                                 <ColorPicker
                                   color={dotColor}
                                   onChange={(hex) => handleSeriesColorChange(col.key, hex)}
                                   onClose={() => setColorPickerKey(null)}
                                 />
-                              </div>
+                              </Popover>
                             )}
                           </div>
                         )}
@@ -374,16 +372,13 @@ export default function ChartDataEditor({
                             style={{ backgroundColor: sliceColor }}
                           />
                           {cellPickerKey === pickerKey && (
-                            <div
-                              className="absolute top-full left-0 mt-1 z-30"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <Popover placement="bottom">
                               <ColorPicker
                                 color={sliceColor}
                                 onChange={(hex) => handleSliceColorChange(rowIdx, col.key, hex)}
                                 onClose={() => setCellPickerKey(null)}
                               />
-                            </div>
+                            </Popover>
                           )}
                         </div>
                       </td>
@@ -451,10 +446,7 @@ export default function ChartDataEditor({
                 style={{ backgroundColor: axisColors[field.key] }}
               />
               {axisPickerKey === field.key && (
-                <div
-                  className="absolute bottom-full left-0 mb-2 z-30"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <Popover placement="top">
                   {field.renamable ? (
                     (() => {
                       const tickKey = field.key as keyof AxisTickColors;
@@ -536,7 +528,7 @@ export default function ChartDataEditor({
                       onClose={() => setAxisPickerKey(null)}
                     />
                   )}
-                </div>
+                </Popover>
               )}
 
               {field.renamable ? (
@@ -574,10 +566,7 @@ export default function ChartDataEditor({
                         </span>
                       </span>
                       {editingAxisLabelKey === labelKey && (
-                        <div
-                          className="absolute bottom-full left-0 mb-2 z-30"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <Popover placement="top">
                           <ColorPicker
                             color={axisLabelColors[labelKey]}
                             label={`${field.defaultLabel} label`}
@@ -630,7 +619,7 @@ export default function ChartDataEditor({
                               </select>
                             </div>
                           </ColorPicker>
-                        </div>
+                        </Popover>
                       )}
                     </>
                   );
