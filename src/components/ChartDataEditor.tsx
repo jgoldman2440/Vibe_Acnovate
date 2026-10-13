@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type {
   AxisColors,
   AxisLabelColors,
@@ -91,35 +91,6 @@ export default function ChartDataEditor({
   const [axisColorTarget, setAxisColorTarget] = useState<'line' | 'ticks'>('line');
   // axis label popover (text, font size, color) — key is the AxisLabels field being edited
   const [editingAxisLabelKey, setEditingAxisLabelKey] = useState<keyof AxisLabels | null>(null);
-
-  useEffect(() => {
-    if (!colorPickerKey) return;
-    const close = () => setColorPickerKey(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [colorPickerKey]);
-
-  useEffect(() => {
-    if (!cellPickerKey) return;
-    const close = () => setCellPickerKey(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [cellPickerKey]);
-
-  useEffect(() => {
-    if (!axisPickerKey) return;
-    const close = () => setAxisPickerKey(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [axisPickerKey]);
-
-  useEffect(() => {
-    if (!editingAxisLabelKey) return;
-    const close = () => handleAxisLabelBlur(editingAxisLabelKey);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingAxisLabelKey]);
 
   const seriesColumns = columns.filter((c) => c.isSeries);
   const canAddSeries = SERIES_ADDABLE.includes(chartType) && seriesColumns.length < 6;
@@ -316,7 +287,7 @@ export default function ChartDataEditor({
                               style={{ backgroundColor: dotColor }}
                             />
                             {colorPickerKey === col.key && (
-                              <Popover placement="bottom">
+                              <Popover placement="bottom" onClose={() => setColorPickerKey(null)}>
                                 <ColorPicker
                                   color={dotColor}
                                   onChange={(hex) => handleSeriesColorChange(col.key, hex)}
@@ -395,7 +366,7 @@ export default function ChartDataEditor({
                             style={{ backgroundColor: sliceColor }}
                           />
                           {cellPickerKey === pickerKey && (
-                            <Popover placement="bottom">
+                            <Popover placement="bottom" onClose={() => setCellPickerKey(null)}>
                               <ColorPicker
                                 color={sliceColor}
                                 label="Slice color"
@@ -484,7 +455,7 @@ export default function ChartDataEditor({
                 style={{ backgroundColor: axisColors[field.key] }}
               />
               {axisPickerKey === field.key && (
-                <Popover placement="top">
+                <Popover placement="top" onClose={() => setAxisPickerKey(null)}>
                   {field.renamable ? (
                     (() => {
                       const tickKey = field.key as keyof AxisTickColors;
@@ -591,7 +562,7 @@ export default function ChartDataEditor({
                         </span>
                       </span>
                       {editingAxisLabelKey === labelKey && (
-                        <Popover placement="top">
+                        <Popover placement="top" onClose={() => handleAxisLabelBlur(labelKey)}>
                           <ColorPicker
                             color={axisLabelColors[labelKey]}
                             label={`${field.defaultLabel} label`}

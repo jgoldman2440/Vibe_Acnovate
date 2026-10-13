@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 const GAP = 8; // space between anchor and popover
@@ -7,17 +7,32 @@ const VIEWPORT_MARGIN = 8; // minimum distance from the window edges
 interface Props {
   // preferred side of the anchor; flips to the other side when there isn't room
   placement?: 'top' | 'bottom';
+  // called when the user presses anywhere outside the popover and its anchor
+  onClose: () => void;
   children: ReactNode;
 }
 
 /**
  * Floating panel rendered into document.body so it sits above every other element
  * and isn't clipped by overflow-hidden/auto ancestors. Anchors to its nearest
- * positioned (`relative`) parent and follows it on scroll/resize.
+ * positioned (`relative`) parent, follows it on scroll/resize, and closes on outside press.
  */
-export default function Popover({ placement = 'bottom', children }: Props) {
+export default function Popover({ placement = 'bottom', onClose, children }: Props) {
   const anchorRef = useRef<HTMLSpanElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (popoverRef.current?.contains(target)) return;
+      // presses on the anchor area are left to its own trigger, which toggles the popover itself
+      if (anchorRef.current?.parentElement?.contains(target)) return;
+      onClose();
+    };
+    // capture phase so elements that stop propagation can't keep the popover open
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
+  }, [onClose]);
 
   useLayoutEffect(() => {
     const anchor = anchorRef.current;
@@ -57,12 +72,7 @@ export default function Popover({ placement = 'bottom', children }: Props) {
     <>
       <span ref={anchorRef} aria-hidden className="absolute inset-0 pointer-events-none" />
       {createPortal(
-        <div
-          ref={popoverRef}
-          className="fixed top-0 left-0 z-1000"
-          // keep clicks inside from reaching the document-level "click outside to close" listeners
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div ref={popoverRef} className="fixed top-0 left-0 z-1000">
           {children}
         </div>,
         document.body,
