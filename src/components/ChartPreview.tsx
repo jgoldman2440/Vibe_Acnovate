@@ -23,8 +23,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartType, ChartVariants, ColumnDef, DataRow } from '../types/chart';
-import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelFontSizes, defaultAxisLabels } from '../data/chartConfigs';
+import type { AxisColors, AxisLabelColors, AxisLabelFontSizes, AxisLabels, AxisTickColors, AxisTickFontSizes, ChartType, ChartVariants, ColumnDef, DataRow } from '../types/chart';
+import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelColors, defaultAxisLabelFontSizes, defaultAxisLabels, defaultAxisTickColors, defaultAxisTickFontSizes } from '../data/chartConfigs';
 
 const LEGEND_WRAPPER_STYLE: React.CSSProperties = { paddingTop: '25px' };
 
@@ -36,6 +36,9 @@ interface Props {
   axisColors?: AxisColors;
   axisLabels?: AxisLabels;
   axisLabelFontSizes?: AxisLabelFontSizes;
+  axisLabelColors?: AxisLabelColors;
+  axisTickFontSizes?: AxisTickFontSizes;
+  axisTickColors?: AxisTickColors;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -47,6 +50,9 @@ export default function ChartPreview({
   axisColors = defaultAxisColors,
   axisLabels = defaultAxisLabels,
   axisLabelFontSizes = defaultAxisLabelFontSizes,
+  axisLabelColors = defaultAxisLabelColors,
+  axisTickFontSizes = defaultAxisTickFontSizes,
+  axisTickColors = defaultAxisTickColors,
   containerRef,
 }: Props) {
   return (
@@ -61,7 +67,7 @@ export default function ChartPreview({
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes)}
+            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes, axisLabelColors, axisTickFontSizes, axisTickColors)}
           </ResponsiveContainer>
         )}
       </div>
@@ -88,11 +94,20 @@ function renderChart(
   axisColors: AxisColors,
   axisLabels: AxisLabels,
   axisLabelFontSizes: AxisLabelFontSizes,
+  axisLabelColors: AxisLabelColors,
+  axisTickFontSizes: AxisTickFontSizes,
+  axisTickColors: AxisTickColors,
 ) {
   const seriesCols   = columns.filter((c) => c.isSeries);
   const categoryKey  = columns.find((c) => c.type === 'text')?.key ?? chartConfigs[chartType].categoryKey;
   const xFontSize    = axisLabelFontSizes.xAxis;
   const yFontSize    = axisLabelFontSizes.yAxis;
+  const xTick        = { fontSize: axisTickFontSizes.xAxis, fill: axisTickColors.xAxis };
+  const yTick        = { fontSize: axisTickFontSizes.yAxis, fill: axisTickColors.yAxis };
+  // axis area grows with tick font size (recharts defaults: 30px tall X-axis, 60px wide Y-axis at 11px ticks)
+  const xAxisHeight        = axisTickFontSizes.xAxis + 19;
+  const yAxisWidth         = Math.round((60 * axisTickFontSizes.yAxis) / 11);
+  const categoryYAxisWidth = Math.round((70 * axisTickFontSizes.yAxis) / 11);
   // margins/offsets scale with label font size so larger labels don't clip or overlap tick text
   const margin       = {
     top: 10,
@@ -101,14 +116,14 @@ function renderChart(
     bottom: axisLabels.xAxis ? xFontSize + 8 : 5,
   };
   const xAxisLabel = axisLabels.xAxis
-    ? { value: axisLabels.xAxis, position: 'insideBottom' as const, offset: -(xFontSize - 2), style: { fill: axisColors.xAxis, fontSize: xFontSize } }
+    ? { value: axisLabels.xAxis, position: 'insideBottom' as const, offset: -(xFontSize - 2), style: { fill: axisLabelColors.xAxis, fontSize: xFontSize } }
     : undefined;
   const yAxisLabel = axisLabels.yAxis
-    ? { value: axisLabels.yAxis, angle: -90, position: 'insideLeft' as const, style: { fill: axisColors.yAxis, fontSize: yFontSize }, offset: 16 - yFontSize / 2 }
+    ? { value: axisLabels.yAxis, angle: -90, position: 'insideLeft' as const, textAnchor: 'middle' as const, style: { fill: axisLabelColors.yAxis, fontSize: yFontSize }, offset: 16 - yFontSize / 2 }
     : undefined;
 
   switch (chartType) {
-    // ── Bar ──────────────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     case 'bar': {
       const v            = variants.bar;
       const isStacked    = v === 'stacked' || v === 'stacked100';
@@ -119,12 +134,12 @@ function renderChart(
         return (
           <BarChart layout="vertical" data={chartData} margin={{ ...margin, left: axisLabels.yAxis ? yFontSize + 24 : 16 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-            <XAxis type="number" tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
+            <XAxis type="number" tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
             <YAxis
               dataKey={categoryKey}
               type="category"
-              width={70}
-              tick={{ fontSize: 11, fill: axisColors.yAxis }}
+              width={categoryYAxisWidth}
+              tick={yTick}
               stroke={axisColors.yAxis}
               label={yAxisLabel}
             />
@@ -140,9 +155,10 @@ function renderChart(
       return (
         <BarChart data={chartData} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <XAxis dataKey={categoryKey} tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
           <YAxis
-            tick={{ fontSize: 11, fill: axisColors.yAxis }}
+            tick={yTick}
+            width={yAxisWidth}
             stroke={axisColors.yAxis}
             tickFormatter={v === 'stacked100' ? (val) => `${val}%` : undefined}
             label={yAxisLabel}
@@ -163,7 +179,7 @@ function renderChart(
       );
     }
 
-    // ── Line ─────────────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Line Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     case 'line': {
       const v         = variants.line;
       const curveType = v === 'smooth' ? 'monotone' : v === 'linear' ? 'linear' : 'step';
@@ -171,8 +187,8 @@ function renderChart(
       return (
         <LineChart data={data} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
-          <YAxis tick={{ fontSize: 11, fill: axisColors.yAxis }} stroke={axisColors.yAxis} label={yAxisLabel} />
+          <XAxis dataKey={categoryKey} tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <YAxis tick={yTick} width={yAxisWidth} stroke={axisColors.yAxis} label={yAxisLabel} />
           <Tooltip />
           <Legend wrapperStyle={LEGEND_WRAPPER_STYLE} />
           {seriesCols.map((col, i) => (
@@ -191,7 +207,7 @@ function renderChart(
       );
     }
 
-    // ── Area ─────────────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Area Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     case 'area': {
       const v         = variants.area;
       const isStacked = v === 'stacked' || v === 'stacked100';
@@ -201,9 +217,10 @@ function renderChart(
       return (
         <AreaChart data={chartData} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey={categoryKey} tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <XAxis dataKey={categoryKey} tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
           <YAxis
-            tick={{ fontSize: 11, fill: axisColors.yAxis }}
+            tick={yTick}
+            width={yAxisWidth}
             stroke={axisColors.yAxis}
             tickFormatter={v === 'stacked100' ? (val) => `${val}%` : undefined}
             label={yAxisLabel}
@@ -227,7 +244,7 @@ function renderChart(
       );
     }
 
-    // ── Pie ──────────────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Pie Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     case 'pie': {
       const v           = variants.pie;
       const innerRadius = v === 'donut' ? '35%' : '0%';
@@ -264,15 +281,15 @@ function renderChart(
       );
     }
 
-    // ── Scatter ──────────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Scatter Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     case 'scatter': {
       const v = variants.scatter;
 
       return (
         <ScatterChart margin={margin}>
           <CartesianGrid strokeDasharray="3 3" stroke={axisColors.grid} />
-          <XAxis dataKey="x" type="number" name="X" tick={{ fontSize: 11, fill: axisColors.xAxis }} stroke={axisColors.xAxis} label={xAxisLabel} />
-          <YAxis dataKey="y" type="number" name="Y" tick={{ fontSize: 11, fill: axisColors.yAxis }} stroke={axisColors.yAxis} label={yAxisLabel} />
+          <XAxis dataKey="x" type="number" name="X" tick={xTick} height={xAxisHeight} stroke={axisColors.xAxis} label={xAxisLabel} />
+          <YAxis dataKey="y" type="number" name="Y" tick={yTick} width={yAxisWidth} stroke={axisColors.yAxis} label={yAxisLabel} />
           {v === 'bubble' && <ZAxis dataKey="size" range={[40, 500]} name="Size" />}
           <Tooltip cursor={{ strokeDasharray: '3 3' }} />
           <Scatter name={categoryKey} data={data} fill={COLORS[0]} />
@@ -280,7 +297,7 @@ function renderChart(
       );
     }
 
-    // ── Radar ────────────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Radar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     case 'radar': {
       const v           = variants.radar;
       const fillOpacity = v === 'outline' ? 0 : 0.2;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 const PALETTE = [
   '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
@@ -28,9 +28,20 @@ interface Props {
   onChange: (hex: string) => void;
   onClose: () => void;
   label?: string;
+  // extra fields rendered above the swatches (e.g. axis label text and font size)
+  children?: ReactNode;
+  // when false, picking a swatch only applies the color and keeps the picker open
+  closeOnSwatch?: boolean;
 }
 
-export default function ColorPicker({ color, onChange, onClose, label = 'Series color' }: Props) {
+export default function ColorPicker({
+  color,
+  onChange,
+  onClose,
+  label = 'Series color',
+  children,
+  closeOnSwatch = true,
+}: Props) {
   const [hex, setHex] = useState(color.toLowerCase());
   const [rgb, setRgb] = useState<{ r: number; g: number; b: number }>(
     () => hexToRgb(color) ?? { r: 99, g: 102, b: 241 },
@@ -63,12 +74,17 @@ export default function ColorPicker({ color, onChange, onClose, label = 'Series 
         {label}
       </p>
 
+      {children && <div className="space-y-2 mb-3">{children}</div>}
+
       {/* Swatches */}
       <div className="grid grid-cols-5 gap-1.5 mb-3">
         {PALETTE.map((swatch) => (
           <button
             key={swatch}
-            onClick={() => { applyHex(swatch); onClose(); }}
+            onClick={() => {
+              applyHex(swatch);
+              if (closeOnSwatch) onClose();
+            }}
             title={swatch}
             className={`w-7 h-7 rounded-md transition-transform hover:scale-110 focus:outline-none ${
               previewColor.toLowerCase() === swatch

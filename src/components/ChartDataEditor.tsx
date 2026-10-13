@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
-import type { AxisColors, AxisLabelFontSizes, AxisLabels, ChartType, ColumnDef, DataRow } from '../types/chart';
-import { AXIS_LABEL_FONT_SIZES, COLORS } from '../data/chartConfigs';
+import type {
+  AxisColors,
+  AxisLabelColors,
+  AxisLabelFontSizes,
+  AxisLabels,
+  AxisTickColors,
+  AxisTickFontSizes,
+  ChartType,
+  ColumnDef,
+  DataRow,
+} from '../types/chart';
+import { AXIS_LABEL_FONT_SIZES, AXIS_TICK_FONT_SIZES, COLORS } from '../data/chartConfigs';
 import { parseAccountingNumber } from '../utils/numberParsing';
 import ColorPicker from './ColorPicker';
 
@@ -16,6 +26,12 @@ interface Props {
   onAxisLabelsChange: (labels: AxisLabels) => void;
   axisLabelFontSizes: AxisLabelFontSizes;
   onAxisLabelFontSizesChange: (sizes: AxisLabelFontSizes) => void;
+  axisLabelColors: AxisLabelColors;
+  onAxisLabelColorsChange: (colors: AxisLabelColors) => void;
+  axisTickFontSizes: AxisTickFontSizes;
+  onAxisTickFontSizesChange: (sizes: AxisTickFontSizes) => void;
+  axisTickColors: AxisTickColors;
+  onAxisTickColorsChange: (colors: AxisTickColors) => void;
 }
 
 const SERIES_ADDABLE: ChartType[] = ['bar', 'line', 'area', 'radar'];
@@ -41,6 +57,12 @@ export default function ChartDataEditor({
   onAxisLabelsChange,
   axisLabelFontSizes,
   onAxisLabelFontSizesChange,
+  axisLabelColors,
+  onAxisLabelColorsChange,
+  axisTickFontSizes,
+  onAxisTickFontSizesChange,
+  axisTickColors,
+  onAxisTickColorsChange,
 }: Props) {
   const [editingColKey, setEditingColKey] = useState<string | null>(null);
   // header-level series color picker
@@ -49,7 +71,9 @@ export default function ChartDataEditor({
   const [cellPickerKey, setCellPickerKey] = useState<string | null>(null);
   // axis/grid color picker — key is the AxisColors field being edited
   const [axisPickerKey, setAxisPickerKey] = useState<keyof AxisColors | null>(null);
-  // axis label being renamed inline — key is the AxisLabels field being edited
+  // which part of the x/y axis the axis picker's color applies to
+  const [axisColorTarget, setAxisColorTarget] = useState<'line' | 'ticks'>('line');
+  // axis label popover (text, font size, color) — key is the AxisLabels field being edited
   const [editingAxisLabelKey, setEditingAxisLabelKey] = useState<keyof AxisLabels | null>(null);
 
   useEffect(() => {
@@ -414,9 +438,15 @@ export default function ChartDataEditor({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (editingAxisLabelKey) handleAxisLabelBlur(editingAxisLabelKey);
+                  setAxisColorTarget('line');
                   setAxisPickerKey(axisPickerKey === field.key ? null : field.key);
                 }}
-                title={`Change ${field.defaultLabel.toLowerCase()} color`}
+                title={
+                  field.renamable
+                    ? `Change ${field.defaultLabel.toLowerCase()} line and tick style`
+                    : `Change ${field.defaultLabel.toLowerCase()} color`
+                }
                 className="w-4 h-4 rounded-full ring-1 ring-gray-200 ring-offset-1 hover:ring-2 hover:ring-indigo-300 transition-all focus:outline-none shrink-0"
                 style={{ backgroundColor: axisColors[field.key] }}
               />
@@ -425,74 +455,188 @@ export default function ChartDataEditor({
                   className="absolute bottom-full left-0 mb-2 z-30"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ColorPicker
-                    color={axisColors[field.key]}
-                    label={`${field.defaultLabel} color`}
-                    onChange={(hex) =>
-                      onAxisColorsChange({ ...axisColors, [field.key]: hex })
-                    }
-                    onClose={() => setAxisPickerKey(null)}
-                  />
+                  {field.renamable ? (
+                    (() => {
+                      const tickKey = field.key as keyof AxisTickColors;
+                      const editingTicks = axisColorTarget === 'ticks';
+                      return (
+                        <ColorPicker
+                          // remount when switching target so the hex/RGB inputs pick up the new color
+                          key={axisColorTarget}
+                          color={editingTicks ? axisTickColors[tickKey] : axisColors[field.key]}
+                          label={field.defaultLabel}
+                          closeOnSwatch={false}
+                          onChange={(hex) =>
+                            editingTicks
+                              ? onAxisTickColorsChange({ ...axisTickColors, [tickKey]: hex })
+                              : onAxisColorsChange({ ...axisColors, [field.key]: hex })
+                          }
+                          onClose={() => setAxisPickerKey(null)}
+                        >
+                          <div>
+                            <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                              Color for
+                            </label>
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-gray-100 rounded">
+                              {(['line', 'ticks'] as const).map((target) => (
+                                <button
+                                  key={target}
+                                  onClick={() => setAxisColorTarget(target)}
+                                  className={`flex items-center justify-center gap-1 py-0.5 text-xs rounded transition-colors ${
+                                    axisColorTarget === target
+                                      ? 'bg-white text-gray-700 shadow-sm'
+                                      : 'text-gray-500 hover:text-gray-700'
+                                  }`}
+                                >
+                                  <span
+                                    className="w-2 h-2 rounded-sm ring-1 ring-gray-200"
+                                    style={{
+                                      backgroundColor:
+                                        target === 'ticks'
+                                          ? axisTickColors[tickKey]
+                                          : axisColors[field.key],
+                                    }}
+                                  />
+                                  {target === 'line' ? 'Line' : 'Ticks'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                              Tick font size
+                            </label>
+                            <select
+                              value={axisTickFontSizes[tickKey]}
+                              onChange={(e) =>
+                                onAxisTickFontSizesChange({
+                                  ...axisTickFontSizes,
+                                  [tickKey]: Number(e.target.value),
+                                })
+                              }
+                              className="block w-full px-1 py-1 text-xs bg-white border border-gray-200 rounded focus:outline-none focus:border-indigo-400 cursor-pointer"
+                            >
+                              {AXIS_TICK_FONT_SIZES.map((size) => (
+                                <option key={size} value={size}>
+                                  {size}px
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </ColorPicker>
+                      );
+                    })()
+                  ) : (
+                    <ColorPicker
+                      color={axisColors[field.key]}
+                      label={`${field.defaultLabel} color`}
+                      onChange={(hex) =>
+                        onAxisColorsChange({ ...axisColors, [field.key]: hex })
+                      }
+                      onClose={() => setAxisPickerKey(null)}
+                    />
+                  )}
                 </div>
               )}
 
               {field.renamable ? (
-                editingAxisLabelKey === field.key ? (
-                  <input
-                    type="text"
-                    autoFocus
-                    value={axisLabels[field.key as keyof AxisLabels]}
-                    onChange={(e) =>
-                      onAxisLabelsChange({ ...axisLabels, [field.key]: e.target.value })
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                    onBlur={() => handleAxisLabelBlur(field.key as keyof AxisLabels)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === 'Escape') {
-                        handleAxisLabelBlur(field.key as keyof AxisLabels);
-                      }
-                      e.stopPropagation();
-                    }}
-                    className="w-24 px-1.5 py-0.5 text-xs bg-white border border-indigo-400 rounded focus:outline-none"
-                  />
-                ) : (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingAxisLabelKey(field.key as keyof AxisLabels);
-                    }}
-                    title="Click to set label"
-                    className={`text-xs truncate cursor-text select-none ${
-                      axisLabels[field.key as keyof AxisLabels]
-                        ? 'text-gray-500 hover:text-indigo-600'
-                        : 'text-gray-300 italic hover:text-indigo-400'
-                    }`}
-                  >
-                    {axisLabels[field.key as keyof AxisLabels] || `${field.defaultLabel} Label`}
-                  </span>
-                )
+                (() => {
+                  const labelKey = field.key as keyof AxisLabels;
+                  return (
+                    <>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAxisPickerKey(null);
+                          if (editingAxisLabelKey === labelKey) handleAxisLabelBlur(labelKey);
+                          else setEditingAxisLabelKey(labelKey);
+                        }}
+                        title="Click to edit label, size and color"
+                        className={`flex items-center gap-1 text-xs truncate cursor-pointer select-none ${
+                          axisLabels[labelKey]
+                            ? 'text-gray-500 hover:text-indigo-600'
+                            : 'text-gray-300 italic hover:text-indigo-400'
+                        }`}
+                      >
+                        {/* text-color icon: "T" over a bar showing the current label color */}
+                        <span className="flex flex-col items-center shrink-0 leading-none not-italic">
+                          <span className="text-[11px] font-bold font-serif text-gray-600">T</span>
+                          <span
+                            className="w-2.5 h-0.75 mt-px rounded-sm ring-1 ring-gray-200"
+                            style={{ backgroundColor: axisLabelColors[labelKey] }}
+                          />
+                        </span>
+                        <span className="truncate">
+                          {axisLabels[labelKey] || `${field.defaultLabel} Label`}
+                        </span>
+                        <span className="shrink-0 text-gray-400 not-italic">
+                          {axisLabelFontSizes[labelKey]}px
+                        </span>
+                      </span>
+                      {editingAxisLabelKey === labelKey && (
+                        <div
+                          className="absolute bottom-full left-0 mb-2 z-30"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ColorPicker
+                            color={axisLabelColors[labelKey]}
+                            label={`${field.defaultLabel} label`}
+                            closeOnSwatch={false}
+                            onChange={(hex) =>
+                              onAxisLabelColorsChange({ ...axisLabelColors, [labelKey]: hex })
+                            }
+                            onClose={() => handleAxisLabelBlur(labelKey)}
+                          >
+                            <div>
+                              <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                Text
+                              </label>
+                              <input
+                                type="text"
+                                autoFocus
+                                value={axisLabels[labelKey]}
+                                placeholder={`${field.defaultLabel} Label`}
+                                onChange={(e) =>
+                                  onAxisLabelsChange({ ...axisLabels, [labelKey]: e.target.value })
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === 'Escape') {
+                                    handleAxisLabelBlur(labelKey);
+                                  }
+                                  e.stopPropagation();
+                                }}
+                                className="block w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-indigo-400"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
+                                Font size
+                              </label>
+                              <select
+                                value={axisLabelFontSizes[labelKey]}
+                                onChange={(e) =>
+                                  onAxisLabelFontSizesChange({
+                                    ...axisLabelFontSizes,
+                                    [labelKey]: Number(e.target.value),
+                                  })
+                                }
+                                className="block w-full px-1 py-1 text-xs bg-white border border-gray-200 rounded focus:outline-none focus:border-indigo-400 cursor-pointer"
+                              >
+                                {AXIS_LABEL_FONT_SIZES.map((size) => (
+                                  <option key={size} value={size}>
+                                    {size}px
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </ColorPicker>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()
               ) : (
                 <span className="text-xs text-gray-500">{field.defaultLabel}</span>
-              )}
-
-              {field.renamable && (
-                <select
-                  value={axisLabelFontSizes[field.key as keyof AxisLabelFontSizes]}
-                  onChange={(e) =>
-                    onAxisLabelFontSizesChange({
-                      ...axisLabelFontSizes,
-                      [field.key]: Number(e.target.value),
-                    })
-                  }
-                  title={`${field.defaultLabel} label font size`}
-                  className="shrink-0 px-1 py-0.5 text-xs text-gray-500 bg-transparent border border-gray-200 rounded hover:border-gray-300 focus:border-indigo-500 focus:outline-none cursor-pointer"
-                >
-                  {AXIS_LABEL_FONT_SIZES.map((size) => (
-                    <option key={size} value={size}>
-                      {size}px
-                    </option>
-                  ))}
-                </select>
               )}
             </div>
           ))}

@@ -3,8 +3,11 @@ import ChartDataEditor from "../components/ChartDataEditor";
 import ChartPreview from "../components/ChartPreview";
 import type {
   AxisColors,
+  AxisLabelColors,
   AxisLabelFontSizes,
   AxisLabels,
+  AxisTickColors,
+  AxisTickFontSizes,
   ChartType,
   ChartVariants,
   ColumnDef,
@@ -14,8 +17,11 @@ import type {
 import {
   chartConfigs,
   defaultAxisColors,
+  defaultAxisLabelColors,
   defaultAxisLabelFontSizes,
   defaultAxisLabels,
+  defaultAxisTickColors,
+  defaultAxisTickFontSizes,
   defaultVariants,
   variantOptions,
 } from "../data/chartConfigs";
@@ -64,6 +70,31 @@ export default function GeneratePage() {
       ? { ...defaultAxisLabelFontSizes, ...existingChartConfig.axisLabelFontSizes }
       : defaultAxisLabelFontSizes,
   );
+  // charts saved before label colors existed used the axis color for their labels
+  const [axisLabelColors, setAxisLabelColors] = useState<AxisLabelColors>(
+    existingChartConfig
+      ? {
+          xAxis: existingChartConfig.axisColors?.xAxis ?? defaultAxisLabelColors.xAxis,
+          yAxis: existingChartConfig.axisColors?.yAxis ?? defaultAxisLabelColors.yAxis,
+          ...existingChartConfig.axisLabelColors,
+        }
+      : defaultAxisLabelColors,
+  );
+  const [axisTickFontSizes, setAxisTickFontSizes] = useState<AxisTickFontSizes>(
+    existingChartConfig
+      ? { ...defaultAxisTickFontSizes, ...existingChartConfig.axisTickFontSizes }
+      : defaultAxisTickFontSizes,
+  );
+  // charts saved before tick colors existed used the axis color for their ticks
+  const [axisTickColors, setAxisTickColors] = useState<AxisTickColors>(
+    existingChartConfig
+      ? {
+          xAxis: existingChartConfig.axisColors?.xAxis ?? defaultAxisTickColors.xAxis,
+          yAxis: existingChartConfig.axisColors?.yAxis ?? defaultAxisTickColors.yAxis,
+          ...existingChartConfig.axisTickColors,
+        }
+      : defaultAxisTickColors,
+  );
   const [isExporting, setIsExporting] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +118,9 @@ export default function GeneratePage() {
           axisColors,
           axisLabels,
           axisLabelFontSizes,
+          axisLabelColors,
+          axisTickFontSizes,
+          axisTickColors,
         },
       });
     } finally {
@@ -103,6 +137,9 @@ export default function GeneratePage() {
     setAxisColors(defaultAxisColors);
     setAxisLabels(defaultAxisLabels);
     setAxisLabelFontSizes(defaultAxisLabelFontSizes);
+    setAxisLabelColors(defaultAxisLabelColors);
+    setAxisTickFontSizes(defaultAxisTickFontSizes);
+    setAxisTickColors(defaultAxisTickColors);
     setStep("edit");
   };
 
@@ -227,6 +264,12 @@ export default function GeneratePage() {
                 onAxisLabelsChange={setAxisLabels}
                 axisLabelFontSizes={axisLabelFontSizes}
                 onAxisLabelFontSizesChange={setAxisLabelFontSizes}
+                axisLabelColors={axisLabelColors}
+                onAxisLabelColorsChange={setAxisLabelColors}
+                axisTickFontSizes={axisTickFontSizes}
+                onAxisTickFontSizesChange={setAxisTickFontSizes}
+                axisTickColors={axisTickColors}
+                onAxisTickColorsChange={setAxisTickColors}
               />
             </div>
 
@@ -239,6 +282,9 @@ export default function GeneratePage() {
                 axisColors={axisColors}
                 axisLabels={axisLabels}
                 axisLabelFontSizes={axisLabelFontSizes}
+                axisLabelColors={axisLabelColors}
+                axisTickFontSizes={axisTickFontSizes}
+                axisTickColors={axisTickColors}
                 containerRef={chartContainerRef}
               />
             </div>
