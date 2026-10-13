@@ -10,9 +10,16 @@ import type {
   ColumnDef,
   DataRow,
 } from '../types/chart';
-import { AXIS_LABEL_FONT_SIZES, AXIS_TICK_FONT_SIZES, COLORS, LEGEND_FONT_SIZES } from '../data/chartConfigs';
+import {
+  AXIS_LABEL_FONT_SIZES,
+  AXIS_TICK_FONT_SIZES,
+  COLORS,
+  LEGEND_FONT_SIZES,
+  PIE_LABEL_FONT_SIZES,
+} from '../data/chartConfigs';
 import { parseAccountingNumber } from '../utils/numberParsing';
 import ColorPicker from './ColorPicker';
+import FontSizeField from './FontSizeField';
 import Popover from './Popover';
 
 interface Props {
@@ -35,6 +42,8 @@ interface Props {
   onAxisTickColorsChange: (colors: AxisTickColors) => void;
   legendFontSize: number;
   onLegendFontSizeChange: (size: number) => void;
+  pieLabelFontSize: number;
+  onPieLabelFontSizeChange: (size: number) => void;
 }
 
 const SERIES_ADDABLE: ChartType[] = ['bar', 'line', 'area', 'radar'];
@@ -68,6 +77,8 @@ export default function ChartDataEditor({
   onAxisTickColorsChange,
   legendFontSize,
   onLegendFontSizeChange,
+  pieLabelFontSize,
+  onPieLabelFontSizeChange,
 }: Props) {
   const [editingColKey, setEditingColKey] = useState<string | null>(null);
   // header-level series color picker
@@ -311,23 +322,13 @@ export default function ChartDataEditor({
                                   onChange={(hex) => handleSeriesColorChange(col.key, hex)}
                                   onClose={() => setColorPickerKey(null)}
                                 >
-                                  <div>
-                                    <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
-                                      Legend font size
-                                    </label>
-                                    <select
-                                      value={legendFontSize}
-                                      onChange={(e) => onLegendFontSizeChange(Number(e.target.value))}
-                                      className="block w-full px-1 py-1 text-xs bg-white border border-gray-200 rounded focus:outline-none focus:border-indigo-400 cursor-pointer"
-                                    >
-                                      {LEGEND_FONT_SIZES.map((size) => (
-                                        <option key={size} value={size}>
-                                          {size}px
-                                        </option>
-                                      ))}
-                                    </select>
-                                    <p className="mt-0.5 text-[10px] text-gray-400">Applies to all series</p>
-                                  </div>
+                                  <FontSizeField
+                                    label="Legend font size"
+                                    value={legendFontSize}
+                                    sizes={LEGEND_FONT_SIZES}
+                                    onChange={onLegendFontSizeChange}
+                                    hint="Applies to all series"
+                                  />
                                 </ColorPicker>
                               </Popover>
                             )}
@@ -397,9 +398,24 @@ export default function ChartDataEditor({
                             <Popover placement="bottom">
                               <ColorPicker
                                 color={sliceColor}
+                                label="Slice color"
                                 onChange={(hex) => handleSliceColorChange(rowIdx, col.key, hex)}
                                 onClose={() => setCellPickerKey(null)}
-                              />
+                              >
+                                <FontSizeField
+                                  label="Slice label font size"
+                                  value={pieLabelFontSize}
+                                  sizes={PIE_LABEL_FONT_SIZES}
+                                  onChange={onPieLabelFontSizeChange}
+                                />
+                                <FontSizeField
+                                  label="Legend font size"
+                                  value={legendFontSize}
+                                  sizes={LEGEND_FONT_SIZES}
+                                  onChange={onLegendFontSizeChange}
+                                  hint="Both apply to all slices"
+                                />
+                              </ColorPicker>
                             </Popover>
                           )}
                         </div>
@@ -516,27 +532,14 @@ export default function ChartDataEditor({
                               ))}
                             </div>
                           </div>
-                          <div>
-                            <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
-                              Tick font size
-                            </label>
-                            <select
-                              value={axisTickFontSizes[tickKey]}
-                              onChange={(e) =>
-                                onAxisTickFontSizesChange({
-                                  ...axisTickFontSizes,
-                                  [tickKey]: Number(e.target.value),
-                                })
-                              }
-                              className="block w-full px-1 py-1 text-xs bg-white border border-gray-200 rounded focus:outline-none focus:border-indigo-400 cursor-pointer"
-                            >
-                              {AXIS_TICK_FONT_SIZES.map((size) => (
-                                <option key={size} value={size}>
-                                  {size}px
-                                </option>
-                              ))}
-                            </select>
-                          </div>
+                          <FontSizeField
+                            label="Tick font size"
+                            value={axisTickFontSizes[tickKey]}
+                            sizes={AXIS_TICK_FONT_SIZES}
+                            onChange={(size) =>
+                              onAxisTickFontSizesChange({ ...axisTickFontSizes, [tickKey]: size })
+                            }
+                          />
                         </ColorPicker>
                       );
                     })()
@@ -619,27 +622,14 @@ export default function ChartDataEditor({
                                 className="block w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-indigo-400"
                               />
                             </div>
-                            <div>
-                              <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">
-                                Font size
-                              </label>
-                              <select
-                                value={axisLabelFontSizes[labelKey]}
-                                onChange={(e) =>
-                                  onAxisLabelFontSizesChange({
-                                    ...axisLabelFontSizes,
-                                    [labelKey]: Number(e.target.value),
-                                  })
-                                }
-                                className="block w-full px-1 py-1 text-xs bg-white border border-gray-200 rounded focus:outline-none focus:border-indigo-400 cursor-pointer"
-                              >
-                                {AXIS_LABEL_FONT_SIZES.map((size) => (
-                                  <option key={size} value={size}>
-                                    {size}px
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                            <FontSizeField
+                              label="Font size"
+                              value={axisLabelFontSizes[labelKey]}
+                              sizes={AXIS_LABEL_FONT_SIZES}
+                              onChange={(size) =>
+                                onAxisLabelFontSizesChange({ ...axisLabelFontSizes, [labelKey]: size })
+                              }
+                            />
                           </ColorPicker>
                         </Popover>
                       )}

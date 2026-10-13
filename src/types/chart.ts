@@ -86,4 +86,5 @@ export interface SavedChartConfig {
   axisTickFontSizes?: AxisTickFontSizes;
   axisTickColors?: AxisTickColors;
   legendFontSize?: number;
+  pieLabelFontSize?: number;
 }

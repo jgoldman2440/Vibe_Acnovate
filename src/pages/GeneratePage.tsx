@@ -24,6 +24,7 @@ import {
   defaultAxisTickFontSizes,
   defaultVariants,
   DEFAULT_LEGEND_FONT_SIZE,
+  DEFAULT_PIE_LABEL_FONT_SIZE,
   variantOptions,
 } from "../data/chartConfigs";
 import { useRef, useState } from "react";
@@ -99,6 +100,9 @@ export default function GeneratePage() {
   const [legendFontSize, setLegendFontSize] = useState<number>(
     existingChartConfig?.legendFontSize ?? DEFAULT_LEGEND_FONT_SIZE,
   );
+  const [pieLabelFontSize, setPieLabelFontSize] = useState<number>(
+    existingChartConfig?.pieLabelFontSize ?? DEFAULT_PIE_LABEL_FONT_SIZE,
+  );
   const [isExporting, setIsExporting] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -126,6 +130,7 @@ export default function GeneratePage() {
           axisTickFontSizes,
           axisTickColors,
           legendFontSize,
+          pieLabelFontSize,
         },
       });
     } finally {
@@ -146,6 +151,7 @@ export default function GeneratePage() {
     setAxisTickFontSizes(defaultAxisTickFontSizes);
     setAxisTickColors(defaultAxisTickColors);
     setLegendFontSize(DEFAULT_LEGEND_FONT_SIZE);
+    setPieLabelFontSize(DEFAULT_PIE_LABEL_FONT_SIZE);
     setStep("edit");
   };
 
@@ -278,6 +284,8 @@ export default function GeneratePage() {
                 onAxisTickColorsChange={setAxisTickColors}
                 legendFontSize={legendFontSize}
                 onLegendFontSizeChange={setLegendFontSize}
+                pieLabelFontSize={pieLabelFontSize}
+                onPieLabelFontSizeChange={setPieLabelFontSize}
               />
             </div>
 
@@ -294,6 +302,7 @@ export default function GeneratePage() {
                 axisTickFontSizes={axisTickFontSizes}
                 axisTickColors={axisTickColors}
                 legendFontSize={legendFontSize}
+                pieLabelFontSize={pieLabelFontSize}
                 containerRef={chartContainerRef}
               />
             </div>

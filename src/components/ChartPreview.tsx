@@ -24,7 +24,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { AxisColors, AxisLabelColors, AxisLabelFontSizes, AxisLabels, AxisTickColors, AxisTickFontSizes, ChartType, ChartVariants, ColumnDef, DataRow } from '../types/chart';
-import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelColors, defaultAxisLabelFontSizes, defaultAxisLabels, defaultAxisTickColors, defaultAxisTickFontSizes, DEFAULT_LEGEND_FONT_SIZE } from '../data/chartConfigs';
+import { chartConfigs, COLORS, defaultAxisColors, defaultAxisLabelColors, defaultAxisLabelFontSizes, defaultAxisLabels, defaultAxisTickColors, defaultAxisTickFontSizes, DEFAULT_LEGEND_FONT_SIZE, DEFAULT_PIE_LABEL_FONT_SIZE } from '../data/chartConfigs';
 
 const LEGEND_WRAPPER_STYLE: React.CSSProperties = { paddingTop: '25px' };
 
@@ -40,6 +40,7 @@ interface Props {
   axisTickFontSizes?: AxisTickFontSizes;
   axisTickColors?: AxisTickColors;
   legendFontSize?: number;
+  pieLabelFontSize?: number;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -55,6 +56,7 @@ export default function ChartPreview({
   axisTickFontSizes = defaultAxisTickFontSizes,
   axisTickColors = defaultAxisTickColors,
   legendFontSize = DEFAULT_LEGEND_FONT_SIZE,
+  pieLabelFontSize = DEFAULT_PIE_LABEL_FONT_SIZE,
   containerRef,
 }: Props) {
   return (
@@ -69,7 +71,7 @@ export default function ChartPreview({
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes, axisLabelColors, axisTickFontSizes, axisTickColors, legendFontSize)}
+            {renderChart(chartType, data, columns, variants, axisColors, axisLabels, axisLabelFontSizes, axisLabelColors, axisTickFontSizes, axisTickColors, legendFontSize, pieLabelFontSize)}
           </ResponsiveContainer>
         )}
       </div>
@@ -100,6 +102,7 @@ function renderChart(
   axisTickFontSizes: AxisTickFontSizes,
   axisTickColors: AxisTickColors,
   legendFontSize: number,
+  pieLabelFontSize: number,
 ) {
   // legend icons scale with the text (recharts default: 14px icon next to ~16px text)
   const legendProps = {
@@ -282,7 +285,7 @@ function renderChart(
             innerRadius={innerRadius}
             startAngle={startAngle}
             endAngle={endAngle}
-            label
+            label={{ fontSize: pieLabelFontSize }}
             labelLine
           />
           <Tooltip />

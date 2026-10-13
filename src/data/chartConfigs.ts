@@ -35,12 +35,17 @@ export const defaultAxisTickColors: AxisTickColors = {
   yAxis: '#666666',
 };
 
-export const AXIS_TICK_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24];
+export const AXIS_TICK_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 26, 28, 30, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72];
 
 // legend text size (px); 16 matches the inherited browser default the legend used before it was configurable
 export const DEFAULT_LEGEND_FONT_SIZE = 16;
 
-export const LEGEND_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32];
+export const LEGEND_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72];
+
+// pie slice value label size (px); 16 matches the inherited SVG default used before it was configurable
+export const DEFAULT_PIE_LABEL_FONT_SIZE = 16;
+
+export const PIE_LABEL_FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48];
 
 export const chartConfigs: Record<ChartType, ChartConfig> = {
   bar: {
